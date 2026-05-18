@@ -1,0 +1,15 @@
+# Optional Codex metadata for aoa-seed-route-inspect
+interface:
+  display_name: AoA Seed Route Inspect
+  short_description: Inspect Dionysus staging, wave context, and planting rules for
+    a reviewed candidate.
+  default_prompt: Use AoA Seed Route Inspect to determine current lifecycle posture,
+    staging context, and planting constraints.
+policy:
+  allow_implicit_invocation: false
+dependencies:
+  tools:
+  - type: mcp
+    value: dionysus
+    description: Dionysus seed-route MCP server
+    transport: stdio

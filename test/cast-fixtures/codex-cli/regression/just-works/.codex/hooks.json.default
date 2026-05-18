@@ -1,0 +1,14 @@
+{
+  "Stop": [
+    {
+      "matcher": ".*",
+      "hooks": [
+        {
+          "command": "afplay /System/Library/Sounds/Glass.aiff",
+          "timeout": 5000,
+          "status_message": "Notification"
+        }
+      ]
+    }
+  ]
+}

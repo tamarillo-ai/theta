@@ -1,0 +1,21 @@
+{
+  "changed_files": [
+    ".codex/harness/scripts/run_session_acceptance.py",
+    ".codex/harness/evals/specs/05-design-before-exec.json"
+  ],
+  "behavior_impact": [
+    "新增可运行的 session acceptance runner",
+    "支持批量执行样例 eval"
+  ],
+  "verification_summary": "样例 bundles 全部通过 runner。",
+  "open_risks": [
+    "真实会话仍需手工导出 bundle"
+  ],
+  "docs_impact": {
+    "status": "updated",
+    "reason": "新增 SESSION_ACCEPTANCE.md 与 eval specs 说明。"
+  },
+  "source_log_ref": ".codex/harness/memory/source_log.md",
+  "decision_log_ref": ".codex/harness/memory/decision_log.md",
+  "workflow_state_ref": ".codex/harness/schemas/workflow_state.schema.json"
+}

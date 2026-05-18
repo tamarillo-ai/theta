@@ -1,0 +1,3 @@
+version: 1
+agent: integration_implementer
+entry: SKILL.md

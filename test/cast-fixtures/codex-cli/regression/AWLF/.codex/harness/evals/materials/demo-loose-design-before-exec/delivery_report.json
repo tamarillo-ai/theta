@@ -1,0 +1,20 @@
+{
+  "changed_files": [
+    ".codex/harness/scripts/materialize_task_workspace.py",
+    ".codex/harness/evals/SESSION_ACCEPTANCE.md"
+  ],
+  "behavior_impact": [
+    "支持从 loose materials 自动生成 task workspace"
+  ],
+  "verification_summary": "通过 materials -> workspace -> bundle -> acceptance 串联验证。",
+  "open_risks": [
+    "当前 transcript 仍需人工整理为 markdown"
+  ],
+  "docs_impact": {
+    "status": "updated",
+    "reason": "补充了 materials 输入模式和命令示例。"
+  },
+  "source_log_ref": ".codex/harness/memory/source_log.md",
+  "decision_log_ref": ".codex/harness/memory/decision_log.md",
+  "workflow_state_ref": ".codex/harness/schemas/workflow_state.schema.json"
+}

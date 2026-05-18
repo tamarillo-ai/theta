@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "delivery_report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "changed_files",
+    "behavior_impact",
+    "verification_summary",
+    "open_risks",
+    "docs_impact"
+  ],
+  "properties": {
+    "changed_files": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "behavior_impact": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "verification_summary": {"type": "string"},
+    "open_risks": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "docs_impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["updated", "none"]
+        },
+        "reason": {"type": "string"}
+      }
+    },
+    "source_log_ref": {"type": "string"},
+    "decision_log_ref": {"type": "string"},
+    "workflow_state_ref": {"type": "string"}
+  }
+}

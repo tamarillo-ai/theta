@@ -1,0 +1,13 @@
+{
+  "task_id": "demo-loose-materials-001",
+  "turn_index": 4,
+  "current_state": "DELIVER",
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L3",
+  "active_roles": ["pipeline", "planner", "implementer", "tester", "docs"],
+  "admission_decision_log": [
+    "需要新增前置归一化脚本",
+    "需要端到端验证现有流水线仍然成立"
+  ],
+  "last_updated": "2026-03-07T11:30:00+08:00"
+}

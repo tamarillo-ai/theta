@@ -1,0 +1,8 @@
+{
+  "bundle_name": "example-03-system-design",
+  "eval_id": "03-system-design",
+  "generated_at": "2026-03-07T10:20:00+08:00",
+  "completed_stages": ["INTAKE", "ADMISSION", "DISCOVERY", "RESEARCH", "DESIGN"],
+  "user_approval_granted": false,
+  "notes": ["示例 bundle：验证系统级设计而非局部修改。"]
+}

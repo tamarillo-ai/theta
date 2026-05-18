@@ -1,0 +1,8 @@
+{
+  "bundle_name": "example-01-ambiguous-intake",
+  "eval_id": "01-ambiguous-intake",
+  "generated_at": "2026-03-07T10:00:00+08:00",
+  "completed_stages": ["INTAKE", "ADMISSION", "DISCOVERY"],
+  "user_approval_granted": false,
+  "notes": ["示例 bundle：验证模糊需求会先澄清再设计。"]
+}

@@ -1,0 +1,50 @@
+# Performance Rules for Codex
+# Guidelines for writing performant code
+
+# Allow profiling tools
+prefix_rule(
+    pattern = ["python", "-m", "cProfile"],
+    decision = "allow",
+    justification = "CPU profiling",
+)
+
+prefix_rule(
+    pattern = ["python", "-m", "memory_profiler"],
+    decision = "allow",
+    justification = "Memory profiling",
+)
+
+# Guidelines (informational — Codex reads these as context)
+#
+# Code optimization:
+#   - Profile before optimizing
+#   - Optimize hot paths identified through profiling
+#   - Use appropriate data structures
+#   - Use generators for large data processing
+#
+# Database performance:
+#   - Index frequently queried columns
+#   - Use connection pooling
+#   - Batch database operations
+#   - Monitor slow query logs
+#
+# Caching:
+#   - Cache at appropriate levels
+#   - Use TTL and event-driven invalidation
+#   - Monitor hit rates
+#
+# Async and concurrency:
+#   - Use async I/O for network-bound ops
+#   - Avoid blocking in async code
+#   - Implement backpressure for high load
+#
+# Memory management:
+#   - Use streaming for large files
+#   - Implement pagination for large results
+#   - Clean up resources properly
+#
+# Key metrics:
+#   - Response time (p50, p95, p99)
+#   - Throughput (requests/second)
+#   - Error rate, resource utilization
+#   - Cache hit/miss ratios

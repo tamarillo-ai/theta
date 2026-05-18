@@ -1,0 +1,31 @@
+[package]
+name = "theta-install"
+version = "0.0.1"
+description = "materialization and validation of the .theta/ project environment"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-git = { workspace = true }
+theta-lock = { workspace = true }
+theta-schema = { workspace = true }
+theta-static = { workspace = true }
+theta-dirs = { workspace = true }
+anyhow = { workspace = true }
+fs-err = { workspace = true }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+theta-manifest = { workspace = true }

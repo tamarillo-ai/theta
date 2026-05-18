@@ -1,0 +1,14 @@
+name = "security-checker"
+description = "Audits code for security issues."
+model = "gpt-5.5"
+developer_instructions = """
+Audit code for security vulnerabilities. Block on credentials in source.
+"""
+
+nickname_candidates = ["sec", "audit"]
+sandbox_mode = "read-only"
+model_reasoning_effort = "high"
+
+[mcp_servers.secrets]
+command = "secrets-scan"
+args = ["--strict"]

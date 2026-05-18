@@ -1,0 +1,54 @@
+{
+  "generators": [
+    {
+      "name": "actor-goal",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.actor-goal.md"
+    },
+    {
+      "name": "lifecycle",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.lifecycle.md"
+    },
+    {
+      "name": "state-transition",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.state-transition.md"
+    },
+    {
+      "name": "failure",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.failure.md"
+    },
+    {
+      "name": "external-integration",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.external-integration.md"
+    },
+    {
+      "name": "operation-audit",
+      "status": "completed",
+      "artifact_path": "./scenario-candidates.operation-audit.md"
+    }
+  ],
+  "candidates": [
+    {
+      "candidate_id": "CAND-<topic-abbrev>-001",
+      "generator": "actor-goal",
+      "source_requirement_id": "REQ-<topic-abbrev>-001",
+      "decision": "adopted",
+      "final_scenario_id": "SCN-<topic-abbrev>-001",
+      "decision_rationale": "<採用理由>"
+    }
+  ],
+  "conflicts": [],
+  "final_mapping": [
+    {
+      "final_scenario_id": "SCN-<topic-abbrev>-001",
+      "candidate_ids": [
+        "CAND-<topic-abbrev>-001"
+      ]
+    }
+  ],
+  "unresolved_questions": []
+}

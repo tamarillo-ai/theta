@@ -1,0 +1,103 @@
+# AI Coding Tools Orchestrator — Codex execution rules
+
+# Allow test commands
+prefix_rule(
+    pattern = ["python", "-m", "pytest"],
+    decision = "allow",
+    justification = "Running pytest is safe and expected",
+    match = [
+        "python -m pytest tests/ -q",
+        "python -m pytest tests/test_orchestrator.py -q --timeout=30",
+    ],
+)
+
+prefix_rule(
+    pattern = ["python3", "-m", "pytest"],
+    decision = "allow",
+    justification = "Running pytest is safe and expected",
+)
+
+# Allow Python execution
+prefix_rule(
+    pattern = ["python"],
+    decision = "allow",
+    justification = "Python execution needed for project scripts",
+)
+
+prefix_rule(
+    pattern = ["python3"],
+    decision = "allow",
+    justification = "Python3 execution needed for project scripts",
+)
+
+# Allow formatting tools
+prefix_rule(
+    pattern = ["black"],
+    decision = "allow",
+    justification = "Black formatter for code style",
+)
+
+prefix_rule(
+    pattern = ["isort"],
+    decision = "allow",
+    justification = "Import sorting",
+)
+
+prefix_rule(
+    pattern = ["flake8"],
+    decision = "allow",
+    justification = "Linting",
+)
+
+prefix_rule(
+    pattern = ["mypy"],
+    decision = "allow",
+    justification = "Type checking",
+)
+
+# Allow the orchestrator CLI
+prefix_rule(
+    pattern = ["./ai-orchestrator"],
+    decision = "allow",
+    justification = "Project CLI tool",
+)
+
+# Allow pip install
+prefix_rule(
+    pattern = ["pip", "install"],
+    decision = "allow",
+    justification = "Installing dependencies",
+)
+
+prefix_rule(
+    pattern = ["pip3", "install"],
+    decision = "allow",
+    justification = "Installing dependencies",
+)
+
+# Allow git read operations
+prefix_rule(
+    pattern = ["git", ["status", "log", "diff", "branch", "show", "blame"]],
+    decision = "allow",
+    justification = "Read-only git operations",
+)
+
+# Prompt before git write operations
+prefix_rule(
+    pattern = ["git", ["push", "commit", "merge", "rebase", "reset"]],
+    decision = "prompt",
+    justification = "Git write operations need confirmation",
+)
+
+# Block dangerous commands
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Prevents catastrophic filesystem deletion",
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf", "~"],
+    decision = "forbidden",
+    justification = "Prevents home directory deletion",
+)

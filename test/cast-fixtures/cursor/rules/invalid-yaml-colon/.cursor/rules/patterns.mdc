@@ -1,0 +1,6 @@
+---
+description: Go design patterns: Repository, Adapter, Circuit Breaker
+globs: ["internal/**/*.go", "pkg/**/*.go"]
+alwaysApply: false
+---
+Use the Repository pattern for data access.

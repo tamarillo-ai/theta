@@ -1,0 +1,3 @@
+version: 1
+agent: docs_updater
+entry: SKILL.md

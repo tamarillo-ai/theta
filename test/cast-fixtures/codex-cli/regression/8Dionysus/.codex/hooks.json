@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /srv/AbyssOS/.codex/hooks/aoa_session_start.py",
+            "statusMessage": "AoA session-start trace",
+            "timeout": 20
+          }
+        ],
+        "matcher": "startup|resume"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /srv/AbyssOS/.codex/hooks/aoa_user_prompt_submit.py",
+            "statusMessage": "AoA prompt trace",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /srv/AbyssOS/.codex/hooks/aoa_stop_doctor.py",
+            "statusMessage": "AoA stop doctor",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+sandbox_mode = "workspace-write"
+web_search = "disabled"
+
+[sandbox_workspace_write]
+network_access = false
+
+developer_instructions = """
+You are the Implementer role.
+- Apply only changes that survived researcher and challenger review.
+- Keep diffs minimal and reversible.
+- Never commit on your own.
+- Prefer local evidence and local edits over speculation.
+"""

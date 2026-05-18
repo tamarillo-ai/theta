@@ -1,0 +1,24 @@
+{
+  "bundle_name": "demo-design-before-exec",
+  "eval_id": "05-design-before-exec",
+  "generated_at": "2026-03-07T04:16:19+08:00",
+  "completed_stages": [
+    "INTAKE",
+    "ADMISSION",
+    "DISCOVERY",
+    "RESEARCH",
+    "DESIGN",
+    "DESIGN_CRITIQUE",
+    "WAIT_USER_APPROVAL",
+    "IMPLEMENT",
+    "VERIFY",
+    "REVIEW",
+    "DELIVER"
+  ],
+  "user_approval_granted": true,
+  "user_approval_evidence": "用户消息：请把“从一次真实任务自动导出 bundle”的脚本也补上",
+  "notes": [
+    "示例真实任务工作区",
+    "completed_stages 留空，测试 exporter 自动推断"
+  ]
+}

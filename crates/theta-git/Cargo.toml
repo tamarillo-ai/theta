@@ -1,0 +1,33 @@
+[package]
+name = "theta-git"
+version = "0.0.1"
+description = "git fetch, ref resolution, and content-addressed cache for theta"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[features]
+online-tests = []
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-dirs = { workspace = true }
+fs-err = { workspace = true }
+fs2 = { workspace = true }
+hex = { workspace = true }
+sha2 = "0.10"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+theta-lock = { workspace = true }
+theta-schema = { workspace = true }
+toml = { workspace = true }

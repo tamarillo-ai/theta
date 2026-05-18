@@ -1,0 +1,51 @@
+{
+  "problem_statement": "从现有任务产物目录自动生成标准 task workspace。",
+  "success_criteria": [
+    "支持 loose materials、bundle、workspace 三种输入",
+    "自动发现 transcript 与 artifacts",
+    "导出的 workspace 可继续进入 bundle exporter"
+  ],
+  "scope": {
+    "in_scope": ["materialize_task_workspace.py", "workspace 元数据推断", "端到端验证"],
+    "out_of_scope": ["直接抓取外部聊天系统原始日志"]
+  },
+  "research_summary": "现有 exporter 已定义 workspace 输入，因此前置脚本应把任意任务产物归一化成这个输入，而不是另起格式。",
+  "reuse_decision_matrix": {
+    "candidate_existing_interfaces": ["metadata.json", "transcript.md", "artifacts/*.json", "session_manifest"],
+    "fitness_score_existing": 94,
+    "fitness_score_new_design": 68,
+    "decision": "REUSE",
+    "decision_rationale": "已有 workspace 和 bundle 结构足够稳定，新的前置脚本只需要做归一化与推断。"
+  },
+  "options_considered": [
+    {
+      "name": "materials -> workspace -> bundle",
+      "mechanism": "先统一到 workspace，再复用现有 bundle exporter。",
+      "tradeoffs": ["流程多一步，但结构清晰"]
+    },
+    {
+      "name": "materials -> bundle",
+      "mechanism": "直接从 loose materials 生成 bundle。",
+      "tradeoffs": ["会绕过 workspace，造成两条平行流程"],
+      "rejected_reason": "不利于维护单一事实源。"
+    }
+  ],
+  "selected_design": {
+    "architecture_summary": "新增前置归一化脚本，复用现有 workspace/bundle/acceptance 流水线。",
+    "interface_changes": ["新增 materialize_task_workspace.py", "新增 source_mode metadata"],
+    "data_flow": "materials -> workspace -> bundle -> acceptance",
+    "failure_modes": ["无法定位 transcript", "artifact 重名冲突", "artifact schema 不合法"],
+    "migration_plan": "先支持显式目录输入，后续再扩展自动抓取来源。"
+  },
+  "verification_plan": [
+    "从 demo loose materials 生成 workspace",
+    "串联导出 bundle 并通过 05-design-before-exec 验收"
+  ],
+  "rollback_plan": [
+    "移除 materialize_task_workspace.py 及 materials 样例"
+  ],
+  "user_approval_points": [
+    "是否接受将真实任务产物统一归一化到 task workspace"
+  ],
+  "approval_status": "approved"
+}

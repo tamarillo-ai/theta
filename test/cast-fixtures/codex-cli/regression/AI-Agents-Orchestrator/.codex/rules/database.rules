@@ -1,0 +1,40 @@
+# Database Rules for Codex
+# Best practices for database design and operations
+
+# Allow SQLite CLI
+prefix_rule(
+    pattern = ["sqlite3"],
+    decision = "allow",
+    justification = "SQLite database inspection",
+)
+
+# Guidelines (informational — Codex reads these as context)
+#
+# Schema design:
+#   - Use snake_case for table and column names
+#   - Always include id primary key (UUID or auto-increment)
+#   - Add created_at and updated_at timestamps
+#   - Use appropriate data types
+#   - Normalize to 3NF, denormalize for performance only
+#
+# Indexing:
+#   - Index foreign keys and frequently queried columns
+#   - Use composite indexes for multi-column queries
+#   - Consider covering indexes for read-heavy workloads
+#
+# Queries:
+#   - Use parameterized queries (prevent SQL injection)
+#   - Prefer specific columns over SELECT *
+#   - Use LIMIT or pagination for result sets
+#   - Analyze with EXPLAIN
+#   - Avoid N+1 queries
+#
+# Migrations:
+#   - Make migrations reversible
+#   - Test on staging before production
+#   - Keep migrations small and focused
+#
+# Connections:
+#   - Use connection pooling
+#   - Set appropriate timeouts
+#   - Use context managers for cleanup

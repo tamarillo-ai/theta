@@ -1,0 +1,18 @@
+[package]
+name = "theta-settings"
+version = "0.0.1"
+description = "Resolved settings for the theta CLI (CLI > env > defaults)"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-static = { workspace = true }

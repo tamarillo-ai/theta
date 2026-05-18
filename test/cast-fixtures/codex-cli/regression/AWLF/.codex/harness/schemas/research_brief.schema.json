@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "research_brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "topic",
+    "local_evidence",
+    "candidate_solutions",
+    "user_decision_points",
+    "verified_at"
+  ],
+  "properties": {
+    "topic": {"type": "string"},
+    "local_evidence": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "candidate_solutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source_tier",
+          "maintenance_activity",
+          "mechanism_summary"
+        ],
+        "properties": {
+          "name": {"type": "string"},
+          "source_tier": {"type": "string"},
+          "maintenance_activity": {"type": "string"},
+          "risks": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "mechanism_summary": {"type": "string"},
+          "fit_notes": {"type": "string"},
+          "source_links": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    },
+    "user_decision_points": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "verified_at": {"type": "string"}
+  }
+}

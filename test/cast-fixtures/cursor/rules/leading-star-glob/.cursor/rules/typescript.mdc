@@ -1,0 +1,5 @@
+---
+globs: *.ts
+alwaysApply: false
+---
+Use strict TypeScript. No `any`.

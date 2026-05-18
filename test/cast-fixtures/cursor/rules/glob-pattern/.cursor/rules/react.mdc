@@ -1,0 +1,7 @@
+---
+description: React component conventions
+globs: src/components/**/*.tsx
+alwaysApply: false
+---
+Use named exports, not default exports.
+Keep components under 200 lines.

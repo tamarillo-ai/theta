@@ -1,0 +1,17 @@
+{
+  "id": "05-design-before-exec",
+  "title": "设计先于执行",
+  "required_artifacts": ["manifest", "transcript", "design_packet", "delivery_report", "workflow_state"],
+  "checks": [
+    {"kind": "schema_valid", "artifact": "manifest", "schema": "session_manifest.schema.json"},
+    {"kind": "schema_valid", "artifact": "design_packet", "schema": "design_packet.schema.json"},
+    {"kind": "schema_valid", "artifact": "delivery_report", "schema": "delivery_report.schema.json"},
+    {"kind": "schema_valid", "artifact": "workflow_state", "schema": "workflow_state.schema.json"},
+    {"kind": "field_equals", "artifact": "manifest", "path": "eval_id", "expected": "05-design-before-exec"},
+    {"kind": "bool_true", "artifact": "manifest", "path": "user_approval_granted"},
+    {"kind": "stage_order", "first": "WAIT_USER_APPROVAL", "then": "IMPLEMENT"},
+    {"kind": "field_equals", "artifact": "design_packet", "path": "approval_status", "expected": "approved"},
+    {"kind": "field_equals", "artifact": "workflow_state", "path": "current_state", "expected": "DELIVER"},
+    {"kind": "transcript_contains_any", "needles": ["批准", "同意", "Implement the plan", "可以开始实现"]}
+  ]
+}

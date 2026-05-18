@@ -1,0 +1,16 @@
+{
+  "id": "03-system-design",
+  "title": "系统级设计",
+  "required_artifacts": ["manifest", "transcript", "design_packet", "workflow_state"],
+  "checks": [
+    {"kind": "schema_valid", "artifact": "manifest", "schema": "session_manifest.schema.json"},
+    {"kind": "schema_valid", "artifact": "design_packet", "schema": "design_packet.schema.json"},
+    {"kind": "schema_valid", "artifact": "workflow_state", "schema": "workflow_state.schema.json"},
+    {"kind": "field_equals", "artifact": "manifest", "path": "eval_id", "expected": "03-system-design"},
+    {"kind": "stage_contains", "stage": "DESIGN"},
+    {"kind": "array_min_length", "artifact": "design_packet", "path": "options_considered", "min": 2},
+    {"kind": "array_min_length", "artifact": "design_packet", "path": "verification_plan", "min": 1},
+    {"kind": "array_min_length", "artifact": "design_packet", "path": "rollback_plan", "min": 1},
+    {"kind": "transcript_contains_any", "needles": ["边界", "依赖", "数据流", "迁移", "回退"]}
+  ]
+}

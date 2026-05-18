@@ -1,0 +1,22 @@
+[package]
+name = "theta-static"
+version = "0.0.1"
+description = "Constants and static strings for the theta CLI"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+fs-err = { workspace = true }
+heck = { workspace = true }
+anyhow = { workspace = true }
+strum = { workspace = true }

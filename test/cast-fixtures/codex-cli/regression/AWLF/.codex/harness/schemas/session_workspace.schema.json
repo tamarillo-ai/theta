@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "session_workspace",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "task_id": {"type": "string"},
+    "bundle_name": {"type": "string"},
+    "eval_id": {"type": "string"},
+    "generated_at": {"type": "string"},
+    "source_mode": {
+      "type": "string",
+      "enum": ["workspace", "bundle", "materials"]
+    },
+    "source_root": {"type": "string"},
+    "completed_stages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "INTAKE",
+          "ADMISSION",
+          "DISCOVERY",
+          "RESEARCH",
+          "DESIGN",
+          "DESIGN_CRITIQUE",
+          "WAIT_USER_APPROVAL",
+          "IMPLEMENT",
+          "VERIFY",
+          "REVIEW",
+          "DELIVER",
+          "BLOCKED"
+        ]
+      }
+    },
+    "user_approval_granted": {"type": "boolean"},
+    "user_approval_evidence": {"type": "string"},
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

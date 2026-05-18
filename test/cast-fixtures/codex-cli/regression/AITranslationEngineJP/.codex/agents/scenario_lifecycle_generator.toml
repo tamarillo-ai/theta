@@ -1,0 +1,25 @@
+name = "scenario_lifecycle_generator"
+description = "Codex シナリオ lifecycle 生成 agent。詳細は /Users/iorishibata/Repositories/AITranslationEngineJP/.codex/skills/scenario-lifecycle-generation/SKILL.md を読む。"
+
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+この作業は `scenario_lifecycle_generator` agent と `scenario-lifecycle-generation` skill に基づく。
+
+最初に次を読む。
+- skill: `/Users/iorishibata/Repositories/AITranslationEngineJP/.codex/skills/scenario-lifecycle-generation/SKILL.md`
+
+必要に応じて次の 補助 skill を読む。
+- `/Users/iorishibata/Repositories/AITranslationEngineJP/.codex/skills/scenario-design/SKILL.md`
+
+引き継ぎ、停止、戻しは skill に従う。
+実行境界はこの TOML の `developer_instructions` に従う。
+出力規約、完了規約、停止規約は skill に従う。
+
+`implement_lane` から渡された 引き継ぎ入力 だけを入口にし、引き継いでいない会話文脈に依存しない。
+`lifecycle` 観点 の シナリオ 候補だけを `scenario-candidates.lifecycle.md` に書く。
+最終シナリオ表、採否、統合、競合解消は `designer` に残す。
+他の シナリオ候補生成 agent を 起動しない。
+"""

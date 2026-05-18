@@ -1,0 +1,5 @@
+---
+globs: src/**/*.ts
+alwaysApply: true
+---
+Always applied but scoped to TypeScript files.

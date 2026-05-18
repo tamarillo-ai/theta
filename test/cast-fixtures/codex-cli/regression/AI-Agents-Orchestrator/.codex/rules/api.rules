@@ -1,0 +1,47 @@
+# API Design Rules for Codex
+# RESTful API design patterns and conventions
+
+# Allow curl for API testing
+prefix_rule(
+    pattern = ["curl"],
+    decision = "allow",
+    justification = "HTTP requests for API testing",
+)
+
+# Allow httpie
+prefix_rule(
+    pattern = ["http"],
+    decision = "allow",
+    justification = "HTTPie for API testing",
+)
+
+# Guidelines (informational — Codex reads these as context)
+#
+# RESTful conventions:
+#   - Use nouns for resources, verbs in HTTP methods
+#   - GET: retrieve, POST: create, PUT: update, PATCH: partial, DELETE: remove
+#   - Use plural resource names: /users, /orders
+#   - Nest related resources: /users/{id}/orders
+#
+# Response format:
+#   - Consistent JSON structure with data, error, meta
+#   - Appropriate HTTP status codes
+#   - Pagination info in list responses
+#   - Meaningful error messages with codes
+#
+# API versioning:
+#   - Version APIs: /api/v1/resource
+#   - Maintain backward compatibility
+#   - Deprecate with advance notice
+#
+# API security:
+#   - Use Bearer tokens for authentication
+#   - Apply rate limiting per client
+#   - Validate Content-Type headers
+#   - Return proper CORS headers
+#
+# API performance:
+#   - Support pagination for list endpoints
+#   - Implement caching with ETags
+#   - Use compression (gzip, brotli)
+#   - Support batch operations

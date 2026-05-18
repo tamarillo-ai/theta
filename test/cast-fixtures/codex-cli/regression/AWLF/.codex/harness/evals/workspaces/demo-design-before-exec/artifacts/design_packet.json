@@ -1,0 +1,51 @@
+{
+  "problem_statement": "给 harness 增加从真实任务工作区自动导出标准 bundle 的脚本。",
+  "success_criteria": [
+    "能从 task workspace 自动生成 manifest",
+    "能复制 transcript 和 artifacts",
+    "能在导出后直接触发 acceptance runner"
+  ],
+  "scope": {
+    "in_scope": ["exporter 脚本", "workspace schema", "导出说明"],
+    "out_of_scope": ["外部服务抓取会话日志"]
+  },
+  "research_summary": "现有 acceptance runner 已定义 bundle 结构，导出器应复用该结构而不是发明新格式。",
+  "reuse_decision_matrix": {
+    "candidate_existing_interfaces": ["session_manifest", "run_session_acceptance.py", "existing bundle layout"],
+    "fitness_score_existing": 93,
+    "fitness_score_new_design": 65,
+    "decision": "REUSE",
+    "decision_rationale": "已有 bundle 结构与 runner 足够承载真实任务导出，无需新增并行格式。"
+  },
+  "options_considered": [
+    {
+      "name": "task workspace -> bundle exporter",
+      "mechanism": "读取 metadata/transcript/artifacts，自动生成 manifest 并输出标准 bundle。",
+      "tradeoffs": ["要求任务过程中产出结构化 artifacts"]
+    },
+    {
+      "name": "直接解析完整聊天记录",
+      "mechanism": "从原始对话自动抽取阶段和 artifacts。",
+      "tradeoffs": ["依赖对话源可获得", "不稳定", "误判风险更高"],
+      "rejected_reason": "当前仓库没有稳定的原始会话数据源，先采用显式 workspace 更可控。"
+    }
+  ],
+  "selected_design": {
+    "architecture_summary": "以 task workspace 为输入，导出器自动推断 stages、审批状态和 manifest。",
+    "interface_changes": ["新增 metadata.json 输入", "新增 export_session_bundle.py"],
+    "data_flow": "workspace -> exporter -> bundle -> acceptance runner",
+    "failure_modes": ["workspace 缺 transcript", "artifact schema 不合法", "spec 不存在"],
+    "migration_plan": "先从手工整理的 workspace 起步，后续再接真实会话落地。"
+  },
+  "verification_plan": [
+    "导出 demo workspace",
+    "导出后立即执行 acceptance validation"
+  ],
+  "rollback_plan": [
+    "移除 exporter 与 workspace 约定"
+  ],
+  "user_approval_points": [
+    "是否接受以 task workspace 作为真实任务导出入口"
+  ],
+  "approval_status": "approved"
+}

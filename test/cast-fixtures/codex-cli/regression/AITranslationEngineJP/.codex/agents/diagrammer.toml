@@ -1,0 +1,23 @@
+name = "diagrammer"
+description = "Codex diagram 補助 agent。設計差分図または原因箇所シーケンス図を扱う。詳細は /Users/iorishibata/Repositories/AITranslationEngineJP/.codex/skills/diagramming/SKILL.md を読む。"
+
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+sandbox_mode = "workspace-write"
+
+developer_instructions = """
+この作業は `diagrammer` agent と `diagramming` skill に基づく。
+
+最初に次を読む。
+- skill: `/Users/iorishibata/Repositories/AITranslationEngineJP/.codex/skills/diagramming/SKILL.md`
+
+引き継ぎ、停止、戻しは skill に従う。
+実行境界はこの TOML の `developer_instructions` に従う。
+出力規約、完了規約、停止規約は skill に従う。
+
+標準 `implement_lane` flow では、人間設計レビュー前の `設計差分図` に限り `implement_lane` から直接起動される。
+標準 `light_change_lane` flow では、実装着手前の `設計差分図` に限り `light_change_lane` から直接起動される。
+標準 `fix_lane` flow では、修正着手前の `原因箇所シーケンス図` に限り `fix_lane` から直接起動される。
+その他の diagram が必要な資料の場合は `designer` agent が `diagramming` skill を参照して扱う。
+この agent は、明示的に diagrammer が指定された補助用途でも使う。
+"""

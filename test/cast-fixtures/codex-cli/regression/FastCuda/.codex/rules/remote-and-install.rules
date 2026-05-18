@@ -1,0 +1,36 @@
+prefix_rule(
+    pattern = ["git", ["push", "tag", "remote"]],
+    decision = "prompt",
+    justification = "Remote Git mutations should stay explicitly approved for this repository.",
+    match = [
+        "git push origin main",
+        "git tag v0.1.0",
+        "git remote add origin https://github.com/loveSunning/FastCuda.git",
+    ],
+    not_match = [
+        "git status",
+        "git diff --stat",
+        "git log --oneline -5",
+    ],
+)
+
+prefix_rule(
+    pattern = [["winget", "choco", "scoop", "apt", "apt-get", "yum", "dnf", "pip", "pip3"], ["install", "add"]],
+    decision = "prompt",
+    justification = "Machine-wide dependency installation should remain explicitly approved.",
+    match = [
+        "winget install Git.Git",
+        "apt-get install ninja-build",
+        "pip install nvidia-pyindex",
+    ],
+    not_match = [
+        "pip show numpy",
+        "apt-cache policy cuda-toolkit",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Hard reset is blocked. Use non-destructive git inspection instead.",
+)

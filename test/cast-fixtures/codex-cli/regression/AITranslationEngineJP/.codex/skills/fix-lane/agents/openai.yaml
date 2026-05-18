@@ -1,0 +1,3 @@
+version: 1
+agent: fix_lane
+entry: SKILL.md

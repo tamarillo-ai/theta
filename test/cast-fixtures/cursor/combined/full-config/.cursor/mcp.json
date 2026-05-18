@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "./data.db"]
+    },
+    "remote-api": {
+      "url": "https://api.example.com/mcp",
+      "headers": {"X-Api-Key": "${env:API_KEY}"},
+      "auth": {
+        "CLIENT_ID": "test-client"
+      }
+    }
+  }
+}

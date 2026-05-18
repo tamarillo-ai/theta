@@ -1,0 +1,20 @@
+[package]
+name = "theta-harness"
+version = "0.0.1"
+description = "harness identity, layout, and config types — what harnesses exist and where their files go"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+strum = { workspace = true }
+theta-static = { workspace = true }

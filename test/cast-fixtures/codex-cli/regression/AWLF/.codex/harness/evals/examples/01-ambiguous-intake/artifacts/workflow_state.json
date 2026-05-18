@@ -1,0 +1,13 @@
+{
+  "task_id": "eval-01",
+  "turn_index": 3,
+  "current_state": "DISCOVERY",
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L4",
+  "active_roles": ["pipeline", "planner", "explorer"],
+  "admission_decision_log": [
+    "任务涉及全局规范与流程重构",
+    "需要设计审批和后续实现"
+  ],
+  "last_updated": "2026-03-07T10:05:00+08:00"
+}

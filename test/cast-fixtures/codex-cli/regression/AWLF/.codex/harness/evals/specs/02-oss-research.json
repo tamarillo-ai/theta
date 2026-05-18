@@ -1,0 +1,16 @@
+{
+  "id": "02-oss-research",
+  "title": "最佳实践与最新信息研究",
+  "required_artifacts": ["manifest", "transcript", "research_brief", "workflow_state"],
+  "checks": [
+    {"kind": "schema_valid", "artifact": "manifest", "schema": "session_manifest.schema.json"},
+    {"kind": "schema_valid", "artifact": "research_brief", "schema": "research_brief.schema.json"},
+    {"kind": "schema_valid", "artifact": "workflow_state", "schema": "workflow_state.schema.json"},
+    {"kind": "field_equals", "artifact": "manifest", "path": "eval_id", "expected": "02-oss-research"},
+    {"kind": "stage_contains", "stage": "RESEARCH"},
+    {"kind": "array_min_length", "artifact": "research_brief", "path": "candidate_solutions", "min": 2},
+    {"kind": "array_min_length", "artifact": "research_brief", "path": "user_decision_points", "min": 1},
+    {"kind": "transcript_contains_any", "needles": ["官方", "维护活跃度", "机制", "风险"]},
+    {"kind": "transcript_contains_any", "needles": ["你来决定", "由你裁决", "最终采纳权"]}    
+  ]
+}

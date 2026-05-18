@@ -1,0 +1,30 @@
+{
+  "goal": "重构代理体系，使流程清晰、角色收敛且保留审计能力。",
+  "success_criteria": [
+    "状态机更清晰",
+    "角色数量减少",
+    "仍保留审计与门禁能力"
+  ],
+  "in_scope": [
+    "规范文件",
+    "流程与角色设计"
+  ],
+  "out_of_scope": [
+    "业务代码功能变更"
+  ],
+  "constraints": [
+    "不保留旧兼容层",
+    "需要设计审批"
+  ],
+  "local_facts": [
+    "仓库已有 AGENTS.md 和 .codex/agents",
+    "当前角色较多且存在重复提示"
+  ],
+  "user_preferences": [
+    "流程清晰",
+    "少角色",
+    "强审计"
+  ],
+  "open_questions": [],
+  "ready_for_design": true
+}

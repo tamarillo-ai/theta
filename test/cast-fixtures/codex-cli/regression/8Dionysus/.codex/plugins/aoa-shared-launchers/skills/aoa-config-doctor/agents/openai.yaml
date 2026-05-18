@@ -1,0 +1,9 @@
+# Optional Codex metadata for aoa-config-doctor
+interface:
+  display_name: AoA Config Doctor
+  short_description: Diagnose AoA Codex wiring when launcher skills or MCP servers
+    are missing or disconnected.
+  default_prompt: Use AoA Config Doctor to identify missing AoA skills or MCP wiring
+    and the shortest fix path.
+policy:
+  allow_implicit_invocation: false

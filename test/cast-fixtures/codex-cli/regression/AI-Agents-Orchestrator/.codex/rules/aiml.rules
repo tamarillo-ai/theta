@@ -1,0 +1,57 @@
+# AI/ML Development Rules for Codex
+# Best practices for machine learning development
+
+# Allow ML training and evaluation commands
+prefix_rule(
+    pattern = ["python", "-m", "torch"],
+    decision = "allow",
+    justification = "PyTorch training scripts",
+)
+
+prefix_rule(
+    pattern = ["python", "-c"],
+    decision = "allow",
+    justification = "Inline Python for data inspection",
+)
+
+# Guidelines (informational — Codex reads these as context)
+#
+# Data handling:
+#   - Validate data quality before training
+#   - Implement proper train/val/test splits
+#   - Use stratified sampling for imbalanced data
+#   - Version datasets with DVC
+#
+# Model development:
+#   - Start with simple baselines
+#   - Use cross-validation for tuning
+#   - Track experiments with MLflow
+#   - Version models and configs
+#
+# Embeddings & vector search:
+#   - Choose embedding model for use case
+#   - Normalize for cosine similarity
+#   - Implement chunking strategies
+#   - Monitor embedding quality
+#
+# LLM integration:
+#   - Use structured prompts with clear instructions
+#   - Add guardrails and output validation
+#   - Handle rate limits and errors
+#   - Cache responses when appropriate
+#
+# RAG pipeline:
+#   - Optimize chunk size (512-1024 tokens)
+#   - Use hybrid search (BM25 + semantic)
+#   - Implement reranking for precision
+#
+# Production:
+#   - Implement model monitoring
+#   - Set up A/B testing
+#   - Implement fallback strategies
+#   - Document limitations
+#
+# Ethics:
+#   - Audit training data for bias
+#   - Test on diverse inputs
+#   - Implement content filtering

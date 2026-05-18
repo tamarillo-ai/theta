@@ -1,0 +1,6 @@
+---
+description: TypeScript coding conventions
+globs: **/*.ts, **/*.tsx
+alwaysApply: false
+---
+Use strict TypeScript. No `any`.

@@ -1,0 +1,13 @@
+{
+  "task_id": "eval-05",
+  "turn_index": 9,
+  "current_state": "DELIVER",
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L4",
+  "active_roles": ["pipeline", "planner", "implementer", "tester", "reviewer", "docs"],
+  "admission_decision_log": [
+    "任务需要设计审批",
+    "实现前必须进入 WAIT_USER_APPROVAL"
+  ],
+  "last_updated": "2026-03-07T10:45:00+08:00"
+}

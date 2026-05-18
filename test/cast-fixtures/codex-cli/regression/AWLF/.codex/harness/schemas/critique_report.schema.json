@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "critique_report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_scope",
+    "blocking_issues",
+    "system_risks",
+    "counterexamples",
+    "patch_smells",
+    "status"
+  ],
+  "properties": {
+    "review_scope": {"type": "string"},
+    "blocking_issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "reason", "required_fix"],
+        "properties": {
+          "title": {"type": "string"},
+          "reason": {"type": "string"},
+          "required_fix": {"type": "string"}
+        }
+      }
+    },
+    "system_risks": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "counterexamples": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "patch_smells": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pass", "revise", "block"]
+    }
+  }
+}

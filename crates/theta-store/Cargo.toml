@@ -1,0 +1,27 @@
+[package]
+name = "theta-store"
+version = "0.0.1"
+description = "system resource store for theta — register, resolve, and manage reusable skills, rules, and agents"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-dirs = { workspace = true }
+theta-schema = { workspace = true }
+theta-static = { workspace = true }
+
+anyhow = { workspace = true }
+fs-err = { workspace = true }
+toml_edit = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

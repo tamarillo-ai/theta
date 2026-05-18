@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gate_result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "stage",
+    "rubric_score",
+    "gate_verdict",
+    "gate_assertion_log"
+  ],
+  "properties": {
+    "stage": {"type": "string"},
+    "rubric_score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_boundary_score",
+        "research_quality_score",
+        "architecture_contract_score",
+        "verification_rollback_score",
+        "risk_control_score"
+      ],
+      "properties": {
+        "requirement_boundary_score": {"type": "number"},
+        "research_quality_score": {"type": "number"},
+        "architecture_contract_score": {"type": "number"},
+        "verification_rollback_score": {"type": "number"},
+        "risk_control_score": {"type": "number"}
+      }
+    },
+    "gate_verdict": {
+      "type": "string",
+      "enum": ["PASS", "REVISE", "BLOCK"]
+    },
+    "gate_assertion_log": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "next_state": {"type": "string"}
+  }
+}

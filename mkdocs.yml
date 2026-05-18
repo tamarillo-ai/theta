@@ -1,0 +1,90 @@
+site_name: theta
+site_description: Rust CLI for managing agent configurations defined by theta-spec.
+site_url: https://theta.tamarillo.ai/
+repo_url: https://github.com/tamarillo/theta
+repo_name: theta
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  font:
+    code: JetBrains Mono
+  features:
+    - navigation.path
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.sections
+    - navigation.indexes
+    - navigation.tracking
+    - navigation.footer
+    - navigation.top
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - tables
+  - def_list
+
+extra_css:
+  - assets/extra.css
+
+plugins:
+  - search
+
+nav:
+  - home: index.md
+  - getting started: getting-started.md
+  - guides:
+      - guides/index.md
+      - managing tools: guides/tools.md
+      - working with skills: guides/skills.md
+      - casting to harnesses: guides/casting.md
+      - system store: guides/store.md
+      - git sources: guides/git-sources.md
+  - concepts:
+      - concepts/index.md
+      - sources: concepts/sources.md
+      - lockfile & sync: concepts/lockfile-sync.md
+      - caching: concepts/caching.md
+  - reference:
+      - reference/index.md
+      - CLI: reference/cli.md
+      - settings: reference/settings.md

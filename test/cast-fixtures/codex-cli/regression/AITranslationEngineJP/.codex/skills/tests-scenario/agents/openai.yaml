@@ -1,0 +1,3 @@
+version: 1
+agent: implementation_scenario_tester
+entry: SKILL.md

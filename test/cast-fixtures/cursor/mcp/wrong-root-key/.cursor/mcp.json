@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "servers": {
+    "filesystem": {
+      "command": "/usr/local/bin/mcp_fs",
+      "args": [],
+      "env": {}
+    }
+  }
+}

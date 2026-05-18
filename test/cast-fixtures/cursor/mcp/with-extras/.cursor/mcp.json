@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "sqlite": {
+      "command": "uvx",
+      "args": ["mcp-server-sqlite", "--db-path", "./data.db"]
+    },
+    "oauth-api": {
+      "url": "https://api.example.com/mcp",
+      "headers": {"Authorization": "Bearer ${env:API_TOKEN}"},
+      "auth": {
+        "CLIENT_ID": "abc123",
+        "scopes": ["read", "write"]
+      }
+    }
+  }
+}

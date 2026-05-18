@@ -1,0 +1,3 @@
+version: 1
+agent: exploration_test_planner
+entry: SKILL.md

@@ -1,0 +1,55 @@
+[package]
+name = "theta"
+version = "0.0.1"
+description = "AI agent configuration manager — the theta CLI"
+edition = { workspace = true }
+rust-version = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "theta"
+path = "src/main.rs"
+
+[dependencies]
+theta-cast = { workspace = true }
+theta-cli = { workspace = true }
+theta-dirs = { workspace = true }
+theta-harness = { workspace = true }
+theta-git = { workspace = true }
+theta-install = { workspace = true }
+theta-lock = { workspace = true }
+theta-manifest = { workspace = true }
+theta-registry = { workspace = true }
+theta-schema = { workspace = true }
+theta-settings = { workspace = true }
+theta-static = { workspace = true }
+theta-store = { workspace = true }
+
+anstream = { workspace = true }
+anyhow = { workspace = true }
+clap = { workspace = true }
+fs-err = { workspace = true }
+indicatif = { workspace = true }
+owo-colors = { workspace = true }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+shlex = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+[dev-dependencies]
+theta-test = { workspace = true }
+assert_fs = { workspace = true }
+predicates = { workspace = true }
+tempfile = { workspace = true }
+toml = { workspace = true }
+
+[lib]
+doctest = false

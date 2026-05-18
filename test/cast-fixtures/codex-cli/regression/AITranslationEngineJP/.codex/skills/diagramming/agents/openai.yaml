@@ -1,0 +1,3 @@
+version: 1
+agent: diagrammer
+entry: SKILL.md

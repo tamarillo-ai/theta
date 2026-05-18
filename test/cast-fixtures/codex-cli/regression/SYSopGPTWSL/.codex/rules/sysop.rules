@@ -1,0 +1,215 @@
+# SYSopGPTWSL execpolicy rules.
+#
+# Goal: block truly-never patterns for this repo/operator workflow.
+# These rules enforce a narrow set of destructive, network-fetch, install,
+# and host-mutation boundaries. They do not enforce the full audit chain.
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "forbidden",
+    match = ["rm -rf /"],
+    not_match = ["rm -f file.txt"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-fr"],
+    decision = "forbidden",
+    match = ["rm -fr /tmp/whatever"],
+    not_match = ["rm -r dir"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-r", "-f"],
+    decision = "forbidden",
+    match = ["rm -r -f /"],
+    not_match = ["rm -r dir"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-f", "-r"],
+    decision = "forbidden",
+    match = ["rm -f -r /"],
+    not_match = ["rm -f file.txt"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    match = ["git reset --hard"],
+    not_match = ["git reset --keep"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-fdx"],
+    decision = "forbidden",
+    match = ["git clean -fdx"],
+    not_match = ["git clean -fd"],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-xdf"],
+    decision = "forbidden",
+    match = ["git clean -xdf"],
+    not_match = ["git clean -x"],
+)
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "forbidden",
+    match = ["sudo tee /etc/hosts"],
+    not_match = ["echo ok"],
+)
+
+prefix_rule(
+    pattern = ["curl"],
+    decision = "forbidden",
+    match = ["curl -fsSL https://example.com"],
+    not_match = ["echo curl"],
+)
+
+prefix_rule(
+    pattern = ["wget"],
+    decision = "forbidden",
+    match = ["wget https://example.com/file.tgz"],
+    not_match = ["echo wget"],
+)
+
+prefix_rule(
+    pattern = ["git", "clone"],
+    decision = "forbidden",
+    match = ["git clone https://example.com/repo.git"],
+    not_match = ["git config --list"],
+)
+
+prefix_rule(
+    pattern = ["git", "fetch"],
+    decision = "forbidden",
+    match = ["git fetch origin"],
+    not_match = ["git status"],
+)
+
+prefix_rule(
+    pattern = ["git", "pull"],
+    decision = "forbidden",
+    match = ["git pull origin main"],
+    not_match = ["git push --dry-run"],
+)
+
+prefix_rule(
+    pattern = ["npm", "install"],
+    decision = "forbidden",
+    match = ["npm install some-package"],
+    not_match = ["npm run test"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "install"],
+    decision = "forbidden",
+    match = ["pnpm install"],
+    not_match = ["pnpm test"],
+)
+
+prefix_rule(
+    pattern = ["pnpm", "add"],
+    decision = "forbidden",
+    match = ["pnpm add some-package"],
+    not_match = ["pnpm exec vitest"],
+)
+
+prefix_rule(
+    pattern = ["yarn", "add"],
+    decision = "forbidden",
+    match = ["yarn add some-package"],
+    not_match = ["yarn test"],
+)
+
+prefix_rule(
+    pattern = ["pip", "install"],
+    decision = "forbidden",
+    match = ["pip install requests"],
+    not_match = ["pip list"],
+)
+
+prefix_rule(
+    pattern = ["pip3", "install"],
+    decision = "forbidden",
+    match = ["pip3 install requests"],
+    not_match = ["pip3 list"],
+)
+
+prefix_rule(
+    pattern = ["uv", "pip", "install"],
+    decision = "forbidden",
+    match = ["uv pip install requests"],
+    not_match = ["uv pip list"],
+)
+
+prefix_rule(
+    pattern = ["apt", "install"],
+    decision = "forbidden",
+    match = ["apt install ripgrep"],
+    not_match = ["apt show ripgrep"],
+)
+
+prefix_rule(
+    pattern = ["apt-get", "install"],
+    decision = "forbidden",
+    match = ["apt-get install ripgrep"],
+    not_match = ["apt-get update --print-uris"],
+)
+
+prefix_rule(
+    pattern = ["brew", "install"],
+    decision = "forbidden",
+    match = ["brew install ripgrep"],
+    not_match = ["brew info ripgrep"],
+)
+
+prefix_rule(
+    pattern = ["winget", "install"],
+    decision = "forbidden",
+    match = ["winget install Git.Git"],
+    not_match = ["winget list"],
+)
+
+prefix_rule(
+    pattern = ["choco", "install"],
+    decision = "forbidden",
+    match = ["choco install git"],
+    not_match = ["choco list --local-only"],
+)
+
+prefix_rule(
+    pattern = ["powercfg.exe", "/S"],
+    decision = "forbidden",
+    match = ["powercfg.exe /S 381b4222-f694-41f0-9685-ff5bb260df2e"],
+    not_match = ["powercfg.exe /GETACTIVESCHEME"],
+)
+
+prefix_rule(
+    pattern = ["wsl.exe", "--shutdown"],
+    decision = "forbidden",
+    match = ["wsl.exe --shutdown"],
+    not_match = ["wsl.exe --status"],
+)
+
+prefix_rule(
+    pattern = ["wsl", "--shutdown"],
+    decision = "forbidden",
+    match = ["wsl --shutdown"],
+    not_match = ["wsl --status"],
+)
+
+prefix_rule(
+    pattern = ["codex", "apply"],
+    decision = "forbidden",
+    match = ["codex apply task-123"],
+    not_match = ["codex help apply"],
+)
+
+prefix_rule(
+    pattern = ["codex", "a"],
+    decision = "forbidden",
+    match = ["codex a task-123"],
+    not_match = ["codex --version"],
+)

@@ -1,0 +1,8 @@
+[files]
+extend-exclude = [
+    "target/",
+    "test/cast-fixtures"
+]
+
+[default.extend-words]
+descripton = "descripton"

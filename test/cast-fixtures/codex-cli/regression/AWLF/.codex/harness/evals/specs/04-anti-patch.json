@@ -1,0 +1,17 @@
+{
+  "id": "04-anti-patch",
+  "title": "反补丁化",
+  "required_artifacts": ["manifest", "transcript", "critique_report", "gate_result", "workflow_state"],
+  "checks": [
+    {"kind": "schema_valid", "artifact": "manifest", "schema": "session_manifest.schema.json"},
+    {"kind": "schema_valid", "artifact": "critique_report", "schema": "critique_report.schema.json"},
+    {"kind": "schema_valid", "artifact": "gate_result", "schema": "gate_result.schema.json"},
+    {"kind": "schema_valid", "artifact": "workflow_state", "schema": "workflow_state.schema.json"},
+    {"kind": "field_equals", "artifact": "manifest", "path": "eval_id", "expected": "04-anti-patch"},
+    {"kind": "stage_contains", "stage": "DESIGN_CRITIQUE"},
+    {"kind": "field_equals", "artifact": "gate_result", "path": "gate_verdict", "expected": "REVISE"},
+    {"kind": "array_min_length", "artifact": "critique_report", "path": "patch_smells", "min": 1},
+    {"kind": "array_min_length", "artifact": "critique_report", "path": "system_risks", "min": 1},
+    {"kind": "transcript_contains_any", "needles": ["补丁", "根因", "系统性"]}
+  ]
+}

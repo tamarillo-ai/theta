@@ -1,0 +1,2 @@
+# Test fixtures are vendored snapshots of real projects. Exclude them
+test/cast-fixtures/** linguist-vendored=true

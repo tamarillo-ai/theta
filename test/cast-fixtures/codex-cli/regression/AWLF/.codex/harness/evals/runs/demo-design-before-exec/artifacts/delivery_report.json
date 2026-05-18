@@ -1,0 +1,22 @@
+{
+  "changed_files": [
+    ".codex/harness/scripts/export_session_bundle.py",
+    ".codex/harness/schemas/session_workspace.schema.json",
+    ".codex/harness/evals/SESSION_ACCEPTANCE.md"
+  ],
+  "behavior_impact": [
+    "新增真实任务导出到标准 bundle 的能力",
+    "导出后可直接进入 acceptance runner"
+  ],
+  "verification_summary": "将 demo workspace 导出并通过 05-design-before-exec 验收。",
+  "open_risks": [
+    "仍需要任务期间显式整理 transcript 与 artifacts"
+  ],
+  "docs_impact": {
+    "status": "updated",
+    "reason": "补充了 task workspace 与 exporter 使用说明。"
+  },
+  "source_log_ref": ".codex/harness/memory/source_log.md",
+  "decision_log_ref": ".codex/harness/memory/decision_log.md",
+  "workflow_state_ref": ".codex/harness/schemas/workflow_state.schema.json"
+}

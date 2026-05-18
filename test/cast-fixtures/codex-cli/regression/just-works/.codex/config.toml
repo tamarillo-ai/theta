@@ -1,0 +1,27 @@
+# Codex CLI configuration — Direct OpenAI API (personal)
+# Install: ./install.sh --personal
+# Manual: cp to ~/.codex/config.toml
+
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+sandbox = "danger-full-access"
+approval_policy = "never"
+
+[env]
+DISABLE_TELEMETRY = "1"
+
+[features]
+multi_agent = true
+codex_hooks = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+
+[tui]
+status_line = ["model-with-reasoning", "git-branch", "context-remaining", "used-tokens"]
+
+# MCP: frontend testing
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]

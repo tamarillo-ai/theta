@@ -1,0 +1,8 @@
+interface:
+  display_name: "OM Session Acceptance"
+  short_description: "Preflight and run OM session acceptance flows."
+  default_prompt: "Use $om-session-acceptance to preflight or execute the OM session acceptance pipeline for this task."
+
+policy:
+  allow_implicit_invocation: true
+

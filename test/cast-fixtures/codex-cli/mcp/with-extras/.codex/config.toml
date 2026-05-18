@@ -1,0 +1,18 @@
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
+bearer_token_env_var = "NOTION_TOKEN"
+oauth_resource = "https://mcp.notion.com/"
+scopes = ["read", "write"]
+startup_timeout_sec = 30
+tool_timeout_sec = 90
+required = true
+
+[mcp_servers.fetch]
+command = "uvx"
+args = ["mcp-fetch"]
+env_vars = ["FETCH_PROXY"]
+cwd = "/tmp"
+startup_timeout_ms = 5000
+enabled_tools = ["fetch_url"]
+disabled_tools = ["fetch_html"]
+experimental_environment = "local"

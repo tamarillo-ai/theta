@@ -1,0 +1,3 @@
+version: 1
+agent: implementation_investigator
+entry: SKILL.md

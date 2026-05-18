@@ -1,0 +1,23 @@
+# Optional Codex metadata for aoa-growth-snapshot
+interface:
+  display_name: AoA Growth Snapshot
+  short_description: Produce a bounded AoA growth snapshot across workspace, stats,
+    and seed context.
+  default_prompt: Use AoA Growth Snapshot to summarize lineage, seed relevance, and
+    one next bounded move.
+policy:
+  allow_implicit_invocation: false
+dependencies:
+  tools:
+  - type: mcp
+    value: aoa_workspace
+    description: AoA workspace orientation MCP server
+    transport: stdio
+  - type: mcp
+    value: aoa_stats
+    description: AoA derived stats MCP server
+    transport: stdio
+  - type: mcp
+    value: dionysus
+    description: Dionysus seed-route MCP server
+    transport: stdio

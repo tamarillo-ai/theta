@@ -1,0 +1,16 @@
+{
+  "stage": "DESIGN_CRITIQUE",
+  "rubric_score": {
+    "requirement_boundary_score": 88,
+    "research_quality_score": 86,
+    "architecture_contract_score": 60,
+    "verification_rollback_score": 75,
+    "risk_control_score": 70
+  },
+  "gate_verdict": "REVISE",
+  "gate_assertion_log": [
+    "发现补丁化方案",
+    "系统风险未被吸收进设计"
+  ],
+  "next_state": "DESIGN"
+}

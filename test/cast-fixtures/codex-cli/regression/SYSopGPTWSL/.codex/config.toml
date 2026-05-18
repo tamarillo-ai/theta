@@ -1,0 +1,31 @@
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+web_search = "live"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
+
+[features]
+multi_agent = true
+
+[agents]
+max_threads = 4
+max_depth = 2
+
+[agents.researcher]
+description = "Evidence-first researcher. Establish observed local evidence before change."
+config_file = "agents/researcher.toml"
+
+[agents.challenger]
+description = "Adversarial reviewer. Produce the strongest blocking counterargument and stop weak changes."
+config_file = "agents/challenger.toml"
+
+[agents.implementer]
+description = "Minimal-diff implementer. Apply only approved changes with rollback in mind."
+config_file = "agents/implementer.toml"
+
+[agents.verifier]
+description = "Local verifier. Confirm claimed effects and fail unresolved changes."
+config_file = "agents/verifier.toml"

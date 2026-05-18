@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "design_packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "problem_statement",
+    "success_criteria",
+    "scope",
+    "research_summary",
+    "reuse_decision_matrix",
+    "options_considered",
+    "selected_design",
+    "verification_plan",
+    "rollback_plan",
+    "user_approval_points",
+    "approval_status"
+  ],
+  "properties": {
+    "problem_statement": {"type": "string"},
+    "success_criteria": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["in_scope", "out_of_scope"],
+      "properties": {
+        "in_scope": {"type": "array", "items": {"type": "string"}},
+        "out_of_scope": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "research_summary": {"type": "string"},
+    "reuse_decision_matrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_existing_interfaces",
+        "fitness_score_existing",
+        "fitness_score_new_design",
+        "decision",
+        "decision_rationale"
+      ],
+      "properties": {
+        "candidate_existing_interfaces": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "fitness_score_existing": {"type": "number"},
+        "fitness_score_new_design": {"type": "number"},
+        "decision": {
+          "type": "string",
+          "enum": ["REUSE", "NEW_INTERFACE"]
+        },
+        "decision_rationale": {"type": "string"},
+        "migration_strategy": {"type": "string"},
+        "compatibility_strategy": {"type": "string"}
+      }
+    },
+    "options_considered": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "mechanism", "tradeoffs"],
+        "properties": {
+          "name": {"type": "string"},
+          "mechanism": {"type": "string"},
+          "tradeoffs": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "rejected_reason": {"type": "string"}
+        }
+      }
+    },
+    "selected_design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "architecture_summary",
+        "interface_changes",
+        "failure_modes",
+        "migration_plan"
+      ],
+      "properties": {
+        "architecture_summary": {"type": "string"},
+        "interface_changes": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "data_flow": {"type": "string"},
+        "failure_modes": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "migration_plan": {"type": "string"}
+      }
+    },
+    "verification_plan": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "rollback_plan": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "user_approval_points": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["draft", "presented", "approved", "rejected"]
+    }
+  }
+}

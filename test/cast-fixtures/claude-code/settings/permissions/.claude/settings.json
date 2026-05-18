@@ -1,0 +1,16 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "enabledPlugins": {
+    "casaflow@casaperks-casaflow": true
+  },
+  "extraKnownMarketplaces": {
+    "casaperks-casaflow": {
+      "source": {
+        "source": "github",
+        "repo": "CasaPerks/casaflow"
+      }
+    }
+  }
+}

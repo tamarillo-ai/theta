@@ -1,0 +1,32 @@
+{
+  "topic": "Harness Engineering 最佳实践",
+  "local_evidence": [
+    "当前仓库已有多代理规范与角色卡",
+    "当前体系提示词重复较多"
+  ],
+  "candidate_solutions": [
+    {
+      "name": "OpenAI Harness 模式",
+      "source_tier": "official",
+      "maintenance_activity": "2026-02 发布，近期仍在更新相关实践",
+      "risks": ["需要补充结构化工件与验收流程"],
+      "mechanism_summary": "强调薄 system prompt、仓库工件作为事实源、环境与反馈回路工程化。",
+      "fit_notes": "适合收缩角色并引入 harness 工件。",
+      "source_links": ["https://openai.com/index/harness-engineering/"]
+    },
+    {
+      "name": "Anthropic Long-running Harness 模式",
+      "source_tier": "official",
+      "maintenance_activity": "2025-11 与 2026-01 连续发布相关工程文章",
+      "risks": ["需要额外建设 session artifact 与 eval 流程"],
+      "mechanism_summary": "强调 initializer、progress artifact、context hygiene 与 eval-driven 改进。",
+      "fit_notes": "适合给当前仓库补充可运行 eval 与会话验收流程。",
+      "source_links": ["https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents"]
+    }
+  ],
+  "user_decision_points": [
+    "优先保留多少多代理骨架",
+    "是否接受新增会话 bundle 与 eval runner"
+  ],
+  "verified_at": "2026-03-07"
+}

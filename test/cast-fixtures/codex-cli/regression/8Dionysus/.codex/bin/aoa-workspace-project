@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_HINT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+if [[ -f "${ROOT_HINT}/scripts/project_workspace_root.py" ]]; then
+  REPO_ROOT="${ROOT_HINT}"
+  WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
+elif [[ -f "${ROOT_HINT}/8Dionysus/scripts/project_workspace_root.py" ]]; then
+  WORKSPACE_ROOT="${ROOT_HINT}"
+  REPO_ROOT="${WORKSPACE_ROOT}/8Dionysus"
+else
+  echo "Could not locate 8Dionysus/scripts/project_workspace_root.py from ${SCRIPT_DIR}" >&2
+  exit 1
+fi
+
+python3 "${REPO_ROOT}/scripts/project_workspace_root.py" --workspace-root "${WORKSPACE_ROOT}" "$@"

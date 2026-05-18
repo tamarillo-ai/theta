@@ -1,0 +1,11 @@
+{
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L4",
+  "admission_decision_log": [
+    "任务涉及全局规范与流程重构",
+    "需要设计审批和后续实现"
+  ],
+  "activated_roles": ["router", "pipeline", "planner", "explorer", "reviewer"],
+  "requires_live_research": true,
+  "requires_user_approval": true
+}

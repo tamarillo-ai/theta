@@ -1,0 +1,3 @@
+version: 1
+agent: review_state_invariant
+entry: SKILL.md

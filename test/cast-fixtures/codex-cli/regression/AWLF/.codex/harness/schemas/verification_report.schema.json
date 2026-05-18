@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "verification_report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "acceptance_criteria",
+    "executed_commands",
+    "results_summary",
+    "coverage_gaps",
+    "residual_risks",
+    "verdict"
+  ],
+  "properties": {
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "executed_commands": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "results_summary": {"type": "string"},
+    "failures_and_repro_steps": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "coverage_gaps": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "residual_risks": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["pass", "revise", "block"]
+    }
+  }
+}

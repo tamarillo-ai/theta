@@ -1,0 +1,15 @@
+# OpenAI Codex CLI project configuration
+# Codex auto-loads repo AGENTS.md instructions.
+# This file provides project-scoped Codex configuration overrides.
+# Governance reference shim: .codex/CODEX.md
+# Shared conventions: VAULT-CONVENTIONS.md
+# Constitution: CONSTITUTION.md
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+[mcp_servers.openaiDeveloperDocs.tools.search_openai_docs]
+approval_mode = "approve"
+
+[mcp_servers.openaiDeveloperDocs.tools.fetch_openai_doc]
+approval_mode = "approve"

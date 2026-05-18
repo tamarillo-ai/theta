@@ -1,0 +1,54 @@
+# Security Rules for Codex
+# These rules apply when working on security-sensitive code
+
+# Block known dangerous patterns
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Prevents catastrophic filesystem deletion",
+)
+
+# Allow security scanning tools
+prefix_rule(
+    pattern = ["bandit"],
+    decision = "allow",
+    justification = "Python security linter",
+)
+
+prefix_rule(
+    pattern = ["safety"],
+    decision = "allow",
+    justification = "Dependency vulnerability scanner",
+)
+
+# Guidelines (informational — Codex reads these as context)
+#
+# Input validation:
+#   - Use parameterized queries for database operations
+#   - Implement input length limits and type checking
+#   - Escape output data to prevent XSS
+#   - Validate against allowlists when possible
+#
+# Authentication:
+#   - Use bcrypt or argon2 for password hashing
+#   - Implement proper session management
+#   - Apply principle of least privilege
+#   - Use rate limiting on authentication endpoints
+#
+# Secrets:
+#   - Use environment variables for secrets
+#   - Never commit API keys or credentials
+#   - Rotate credentials regularly
+#
+# Secure coding:
+#   - Avoid eval() and exec()
+#   - Use safe deserialization
+#   - Handle errors without leaking info
+#   - Apply Content Security Policy headers
+#
+# Checklist:
+#   - No hardcoded secrets
+#   - Parameterized database queries
+#   - Auth checks in place
+#   - HTTPS/TLS for communication
+#   - Rate limiting on sensitive endpoints

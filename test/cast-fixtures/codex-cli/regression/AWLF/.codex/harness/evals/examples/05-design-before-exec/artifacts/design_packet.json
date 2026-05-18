@@ -1,0 +1,50 @@
+{
+  "problem_statement": "为 harness 增加可运行的 session acceptance runner。",
+  "success_criteria": [
+    "可对 bundle 做 schema 和语义检查",
+    "可批量运行样例"
+  ],
+  "scope": {
+    "in_scope": ["runner 脚本", "eval specs", "样例 bundles"],
+    "out_of_scope": ["外部 CI 集成"]
+  },
+  "research_summary": "研究显示 eval-driven harness 需要结构化 bundle 和可重放的验收流程。",
+  "reuse_decision_matrix": {
+    "candidate_existing_interfaces": ["research_brief", "design_packet", "workflow_state"],
+    "fitness_score_existing": 85,
+    "fitness_score_new_design": 87,
+    "decision": "REUSE",
+    "decision_rationale": "现有 artifacts 足够承载会话验收，只需新增 manifest 和 runner。"
+  },
+  "options_considered": [
+    {
+      "name": "Python runner + bundle",
+      "mechanism": "读取 manifest/transcript/artifacts，执行 schema 与启发式检查。",
+      "tradeoffs": ["需要维护 runner 脚本"]
+    },
+    {
+      "name": "纯文档 checklist",
+      "mechanism": "由人工逐项检查 eval 条件。",
+      "tradeoffs": ["不能自动化", "可重复性差"],
+      "rejected_reason": "无法满足可运行的检查脚本要求。"
+    }
+  ],
+  "selected_design": {
+    "architecture_summary": "以 bundle 为输入，由 runner 读取 spec 并执行校验。",
+    "interface_changes": ["新增 session_manifest", "新增 run_session_acceptance.py"],
+    "data_flow": "bundle -> spec -> runner -> PASS/FAIL 报告",
+    "failure_modes": ["bundle 缺文件", "schema 不匹配", "关键行为缺失"],
+    "migration_plan": "先增加 runner 与样例，再逐步接入真实会话产物。"
+  },
+  "verification_plan": [
+    "运行 --all-examples",
+    "确认五个样例均通过"
+  ],
+  "rollback_plan": [
+    "删除新增 runner 与样例文件"
+  ],
+  "user_approval_points": [
+    "是否接受 bundle 作为会话验收输入"
+  ],
+  "approval_status": "approved"
+}

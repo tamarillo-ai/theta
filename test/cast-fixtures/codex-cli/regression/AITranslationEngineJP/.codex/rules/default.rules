@@ -1,0 +1,268 @@
+# Project-local Codex rules for AITranslationEngineJP.
+# These rules allow workflow validation commands to run outside the sandbox.
+
+prefix_rule(
+    pattern = [
+        "python3",
+        "scripts/harness/run.py",
+        "--suite",
+        [
+            "frontend-lint",
+            "backend-lint",
+            "frontend-local",
+            "backend-local",
+            "frontend-test",
+            "backend-test",
+            "system-test",
+            "scenario-gate",
+            "coverage",
+            "structure",
+            "execution",
+            "all",
+        ],
+    ],
+    decision = "allow",
+    justification = "AITranslationEngineJP harness suites are workflow validation commands.",
+    match = [
+        "python3 scripts/harness/run.py --suite backend-local",
+        "python3 scripts/harness/run.py --suite frontend-local",
+        "python3 scripts/harness/run.py --suite all",
+    ],
+    not_match = [
+        "python3 scripts/harness/run.py --suite unknown",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "npm",
+        "run",
+        [
+            "lint:backend",
+            "lint:frontend",
+            "frontendlint",
+            "test:backend",
+            "test:frontend",
+            "test:system",
+            "test:system:install",
+            "test:backend:coverage",
+            "test:frontend:coverage",
+            "scan:sonar",
+            "dev:wails:agent-browser",
+        ],
+    ],
+    decision = "allow",
+    justification = "Root package scripts are workflow validation and local app commands.",
+    match = [
+        "npm run test:backend",
+        "npm run test:frontend",
+        "npm run scan:sonar",
+    ],
+    not_match = [
+        "npm run install",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "npm",
+        "--prefix",
+        "frontend",
+        "run",
+        [
+            "lint",
+            "test",
+            "test:coverage",
+            "build",
+            "check",
+            "lint:eslint",
+            "lint:types",
+            "lint:exports",
+            "lint:boundaries",
+            "format:check",
+        ],
+    ],
+    decision = "allow",
+    justification = "Frontend package scripts are workflow validation commands.",
+    match = [
+        "npm --prefix frontend run lint",
+        "npm --prefix frontend run test",
+        "npm --prefix frontend run test:coverage",
+    ],
+    not_match = [
+        "npm --prefix frontend run dev",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "sh",
+        [
+            "./scripts/test/run-go-backend-test.sh",
+            "./scripts/test/run-go-backend-coverage.sh",
+            "./scripts/test/run-frontend-coverage.sh",
+            "./scripts/test/run-system-test.sh",
+            "./scripts/dev/run-wails-agent-browser.sh",
+        ],
+    ],
+    decision = "allow",
+    justification = "Repository shell wrappers set workflow-safe cache and test defaults.",
+    match = [
+        "sh ./scripts/test/run-go-backend-test.sh",
+        "sh ./scripts/test/run-system-test.sh",
+    ],
+    not_match = [
+        "sh ./scripts/test/unknown.sh",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "sh",
+        "./scripts/lint/run-go-backend-lint.sh",
+        [
+            "format-check",
+            "vet",
+            "static",
+            "arch",
+            "module",
+            "packages",
+        ],
+    ],
+    decision = "allow",
+    justification = "Backend lint wrapper is part of the workflow validation gate.",
+    match = [
+        "sh ./scripts/lint/run-go-backend-lint.sh vet",
+        "sh ./scripts/lint/run-go-backend-lint.sh static",
+    ],
+    not_match = [
+        "sh ./scripts/lint/run-go-backend-lint.sh unknown",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "go",
+        [
+            "test",
+            "vet",
+            "list",
+            "run",
+        ],
+    ],
+    decision = "allow",
+    justification = "Go test, vet, list, and tool runners are required by backend validation.",
+    match = [
+        "go test ./internal/...",
+        "go vet ./internal/...",
+        "go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0 run --config .golangci.yml ./internal/...",
+    ],
+    not_match = [
+        "go env -w GOPROXY=off",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "go",
+        "tool",
+        "cover",
+    ],
+    decision = "allow",
+    justification = "Go coverage summary generation is required by backend coverage validation.",
+    match = [
+        "go tool cover -func=test-results/backend-coverage/coverage.out",
+    ],
+    not_match = [
+        "go tool pprof",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "gofmt",
+        "-l",
+        "internal",
+    ],
+    decision = "allow",
+    justification = "Backend format check is part of the lint gate.",
+    match = [
+        "gofmt -l internal",
+    ],
+    not_match = [
+        "gofmt -w internal",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "npx",
+        "playwright",
+        "test",
+    ],
+    decision = "allow",
+    justification = "Playwright system tests are workflow validation commands.",
+    match = [
+        "npx playwright test --config ./playwright.config.ts",
+    ],
+    not_match = [
+        "npx playwright install chromium",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "wails",
+        "dev",
+    ],
+    decision = "allow",
+    justification = "Wails dev server is required by the system-test workflow.",
+    match = [
+        "wails dev -devserver localhost:34115",
+    ],
+    not_match = [
+        "wails build",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "agent-browser",
+        [
+            "doctor",
+            "open",
+            "snapshot",
+            "get",
+            "click",
+            "screenshot",
+            "close",
+            "errors",
+        ],
+    ],
+    decision = "allow",
+    justification = "agent-browser CLI commands are required for local browser evidence gathering.",
+    match = [
+        "agent-browser doctor --offline --quick",
+        "agent-browser open http://localhost:34115",
+        "agent-browser screenshot tmp/agent-browser/screenshot.png",
+        "agent-browser errors",
+    ],
+    not_match = [
+        "agent-browser install",
+    ],
+)
+
+prefix_rule(
+    pattern = [
+        "node",
+        "./scripts/node/run-sonar-scanner.mjs",
+    ],
+    decision = "allow",
+    justification = "Sonar scanner wrapper fixes repo-local validation environment defaults.",
+    match = [
+        "node ./scripts/node/run-sonar-scanner.mjs",
+    ],
+    not_match = [
+        "node ./scripts/node/unknown.mjs",
+    ],
+)

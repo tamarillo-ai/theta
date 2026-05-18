@@ -1,0 +1,25 @@
+{
+  "task_id": "demo-loose-materials-001",
+  "generated_at": "2026-03-07T04:22:55+08:00",
+  "source_mode": "materials",
+  "source_root": "E:\\MyDocument\\AA_QRS\\Robot_fast\\robot\\.codex\\harness\\evals\\materials\\demo-loose-design-before-exec",
+  "completed_stages": [
+    "INTAKE",
+    "ADMISSION",
+    "DISCOVERY",
+    "RESEARCH",
+    "DESIGN",
+    "DESIGN_CRITIQUE",
+    "WAIT_USER_APPROVAL",
+    "IMPLEMENT",
+    "VERIFY",
+    "REVIEW",
+    "DELIVER"
+  ],
+  "user_approval_granted": true,
+  "notes": [
+    "Materialized from materials source.",
+    "Transcript source: conversation.md"
+  ],
+  "eval_id": "05-design-before-exec"
+}

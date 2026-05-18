@@ -1,0 +1,23 @@
+[package]
+name = "theta-manifest"
+version = "0.0.1"
+description = "Formatting-preserving theta.toml read/write/mutate operations"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-schema = { workspace = true }
+theta-static = { workspace = true }
+fs-err = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }

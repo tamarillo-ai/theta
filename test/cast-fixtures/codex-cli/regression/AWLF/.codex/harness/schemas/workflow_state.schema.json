@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "workflow_state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_id",
+    "turn_index",
+    "current_state",
+    "workflow_mode",
+    "risk_level",
+    "active_roles",
+    "admission_decision_log",
+    "last_updated"
+  ],
+  "properties": {
+    "task_id": {"type": "string"},
+    "turn_index": {"type": "integer"},
+    "current_state": {
+      "type": "string",
+      "enum": [
+        "INTAKE",
+        "ADMISSION",
+        "DISCOVERY",
+        "RESEARCH",
+        "DESIGN",
+        "DESIGN_CRITIQUE",
+        "WAIT_USER_APPROVAL",
+        "IMPLEMENT",
+        "VERIFY",
+        "REVIEW",
+        "DELIVER",
+        "BLOCKED"
+      ]
+    },
+    "workflow_mode": {
+      "type": "string",
+      "enum": ["single-agent-lite", "multi-agent-full"]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["L1", "L2", "L3", "L4"]
+    },
+    "active_roles": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "admission_decision_log": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "user_arbitration_record": {"type": "string"},
+    "mode_drift_record": {"type": "string"},
+    "last_updated": {"type": "string"}
+  }
+}

@@ -1,0 +1,16 @@
+{
+    "mcpServers": {
+        "remote-api": {
+            "type": "http",
+            "url": "https://mcp.example.com/mcp",
+            "headers": {
+                "Authorization": "Bearer ${API_TOKEN}"
+            },
+            "oauth": {
+                "clientId": "my-client",
+                "callbackPort": 8080
+            },
+            "alwaysLoad": true
+        }
+    }
+}

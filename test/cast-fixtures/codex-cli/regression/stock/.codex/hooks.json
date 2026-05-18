@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \".codex/hooks/ralph_stop.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking Ralph control state"
+          }
+        ]
+      }
+    ]
+  }
+}

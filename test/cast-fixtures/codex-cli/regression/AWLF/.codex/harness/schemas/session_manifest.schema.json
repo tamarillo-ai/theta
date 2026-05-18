@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "session_manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "bundle_name",
+    "eval_id",
+    "generated_at",
+    "completed_stages",
+    "user_approval_granted"
+  ],
+  "properties": {
+    "bundle_name": {"type": "string"},
+    "eval_id": {"type": "string"},
+    "generated_at": {"type": "string"},
+    "completed_stages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "INTAKE",
+          "ADMISSION",
+          "DISCOVERY",
+          "RESEARCH",
+          "DESIGN",
+          "DESIGN_CRITIQUE",
+          "WAIT_USER_APPROVAL",
+          "IMPLEMENT",
+          "VERIFY",
+          "REVIEW",
+          "DELIVER",
+          "BLOCKED"
+        ]
+      }
+    },
+    "user_approval_granted": {"type": "boolean"},
+    "user_approval_evidence": {"type": "string"},
+    "notes": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}

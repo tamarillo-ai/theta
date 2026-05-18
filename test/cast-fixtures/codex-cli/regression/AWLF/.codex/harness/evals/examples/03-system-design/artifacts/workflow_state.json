@@ -1,0 +1,13 @@
+{
+  "task_id": "eval-03",
+  "turn_index": 7,
+  "current_state": "DESIGN",
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L4",
+  "active_roles": ["pipeline", "planner", "explorer", "architecture_guardian", "reviewer"],
+  "admission_decision_log": [
+    "需要系统级设计",
+    "需要先形成 design_packet"
+  ],
+  "last_updated": "2026-03-07T10:25:00+08:00"
+}

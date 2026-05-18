@@ -1,0 +1,51 @@
+{
+    "chat.promptFilesRecommendations": {
+        "speckit.constitution": true,
+        "speckit.specify": true,
+        "speckit.plan": true,
+        "speckit.tasks": true,
+        "speckit.implement": true,
+        "build-orchestrator": true
+    },
+    "chat.agentFilesLocations": {
+      "lib/hve-core/.github/agents": true,
+      ".github/agents": true
+    },
+    "chat.promptFilesLocations": {
+        "lib/hve-core/.github/prompts": true,
+        ".github/prompts": true
+    },
+    "chat.instructionsFilesLocations": {
+        "lib/hve-core/.github/instructions": true,
+        ".github/instructions": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".specify/scripts/bash/": true,
+        ".specify/scripts/powershell/": true,
+        "/^cargo (build|test|run|clippy|fmt|check|doc|update|install|search|publish|login|logout|new|init|add|upgrade|version|help|bench)(\\s[^;|&`]*)?(\\s*(>|>>|2>&1|\\|\\s*(Out-File|Set-Content|Out-String))\\s*[^;|&`]*)*$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cargo --(help|version|verbose|quiet|release|features)(\\s[^;|&`]*)?$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^git (status|add|commit|diff|log|fetch|pull|push|checkout|branch|--version)(\\s[^;|&`]*)?(\\s*(>|>>|2>&1|\\|\\s*(Out-File|Set-Content|Out-String))\\s*[^;|&`]*)*$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^(Out-File|Set-Content|Add-Content|Get-Content|Get-ChildItem|Copy-Item|Move-Item|New-Item|Test-Path)(\\s[^;|&`]*)?$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^(echo|dir|mkdir|where\\.exe|vsWhere\\.exe|rustup|rustc|refreshenv)(\\s[^;|&`]*)?$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^cmd /c \"cargo (test|check|clippy|fmt|build|doc|bench)(\\s[^;|&`]*)?\"(\\s*[;&|]+\\s*echo\\s.*)?$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
+

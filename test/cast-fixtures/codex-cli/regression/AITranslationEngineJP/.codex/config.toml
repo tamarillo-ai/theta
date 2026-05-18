@@ -1,0 +1,6 @@
+
+max_depth = 1
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+[features]
+codex_hooks = true

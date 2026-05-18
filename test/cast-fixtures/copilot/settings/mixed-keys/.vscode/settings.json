@@ -1,0 +1,35 @@
+{
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "editor.inlineSuggest.enabled": true,
+  "redhat.telemetry.enabled": true,
+  "markdownlint.ignore": [".cursor/rules/**/*.mdc"],
+  "editor.formatOnSave": true,
+  "search.exclude": {
+    ".cursor/rules/**": true,
+    ".claude/agents/**": true,
+    ".codex/agents/**": true,
+    "docs/dcr/plans/archive/**": true,
+    "docs/dcr/specs/archive/**": true,
+    "Product/dexter-jp/**": true,
+    "**/.dexter/**": true,
+    "**/.superpowers/**": true,
+    "**/.next/**": true,
+    "**/node_modules/**": true
+  },
+  "files.exclude": {
+    ".cursor/rules/**": true,
+    ".claude/agents/**": true,
+    ".codex/agents/**": true,
+    "docs/dcr/plans/archive": true,
+    "docs/dcr/specs/archive": true,
+    "Product/dexter-jp": true
+  },
+  "files.watcherExclude": {
+    ".cursor/rules/**": true,
+    ".claude/agents/**": true,
+    ".codex/agents/**": true,
+    "Product/dexter-jp/**": true,
+    "**/.next/**": true,
+    "**/node_modules/**": true
+  }
+}

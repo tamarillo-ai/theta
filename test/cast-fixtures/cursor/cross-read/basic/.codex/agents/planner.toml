@@ -1,0 +1,4 @@
+name = "planner"
+description = "breaks down complex tasks"
+model = "o3"
+developer_instructions = "you create step-by-step implementation plans"

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_HINT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+if [[ -f "${ROOT_HINT}/scripts/run_required_check_audit.py" ]]; then
+  REPO_ROOT="${ROOT_HINT}"
+  WORKSPACE_ROOT="$(cd "${REPO_ROOT}/.." && pwd)"
+elif [[ -f "${ROOT_HINT}/8Dionysus/scripts/run_required_check_audit.py" ]]; then
+  WORKSPACE_ROOT="${ROOT_HINT}"
+  REPO_ROOT="${WORKSPACE_ROOT}/8Dionysus"
+else
+  echo "Could not locate 8Dionysus/scripts/run_required_check_audit.py from ${SCRIPT_DIR}" >&2
+  exit 1
+fi
+
+python3 "${REPO_ROOT}/scripts/run_required_check_audit.py" --contract-repo "${REPO_ROOT}" "$@"

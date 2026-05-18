@@ -1,0 +1,34 @@
+prefix_rule(
+    pattern = ["git", "push", "origin", "main"],
+    decision = "forbidden",
+    justification = "Direct push to main is forbidden. Use issue branch to PR flow.",
+    match = ["git push origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "origin", "develop"],
+    decision = "forbidden",
+    justification = "Direct push to develop is forbidden. Use issue branch to PR flow.",
+    match = ["git push origin develop"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "origin", "develop_loop"],
+    decision = "forbidden",
+    justification = "Direct push to develop_loop is forbidden. Open a PR instead.",
+    match = ["git push origin develop_loop"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "Force push is forbidden in Ralph loop repositories.",
+    match = ["git push --force"],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "-f"],
+    decision = "forbidden",
+    justification = "Force push is forbidden in Ralph loop repositories.",
+    match = ["git push -f"],
+)

@@ -1,0 +1,132 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture pre-tool-use --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 3,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture post-tool-use --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 3,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture user-prompt-submit --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 2,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture session-start --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 2,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture stop --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 5,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture notification --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 2,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture pre-compact --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 3,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "claude-hooks capture subagent-stop --db \"sqlite+aiosqlite:///~/.claude-hooks/events.db\"",
+            "timeout": 3,
+            "env": {
+              "CLAUDE_HOOKS_DATABASE_URL": "sqlite+aiosqlite:///~/.claude-hooks/events.db",
+              "PYTHONUNBUFFERED": "1"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

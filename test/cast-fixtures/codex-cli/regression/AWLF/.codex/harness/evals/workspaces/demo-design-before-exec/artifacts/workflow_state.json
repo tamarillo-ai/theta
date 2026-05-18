@@ -1,0 +1,13 @@
+{
+  "task_id": "demo-real-task-001",
+  "turn_index": 4,
+  "current_state": "DELIVER",
+  "workflow_mode": "multi-agent-full",
+  "risk_level": "L3",
+  "active_roles": ["pipeline", "planner", "implementer", "tester", "docs"],
+  "admission_decision_log": [
+    "新增 exporter 会改变 harness 运行时流程",
+    "需要设计审批和实现验证"
+  ],
+  "last_updated": "2026-03-07T11:10:00+08:00"
+}

@@ -1,0 +1,21 @@
+{
+  "bundle_name": "example-05-design-before-exec",
+  "eval_id": "05-design-before-exec",
+  "generated_at": "2026-03-07T10:40:00+08:00",
+  "completed_stages": [
+    "INTAKE",
+    "ADMISSION",
+    "DISCOVERY",
+    "RESEARCH",
+    "DESIGN",
+    "DESIGN_CRITIQUE",
+    "WAIT_USER_APPROVAL",
+    "IMPLEMENT",
+    "VERIFY",
+    "REVIEW",
+    "DELIVER"
+  ],
+  "user_approval_granted": true,
+  "user_approval_evidence": "用户消息：可以开始实现。",
+  "notes": ["示例 bundle：验证必须先审批设计，再进入实现。"]
+}

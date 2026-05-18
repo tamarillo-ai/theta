@@ -1,0 +1,5 @@
+# Keep the sibling-workspace root discoverable above individual repo .git roots.
+project_root_markers = ["AOA_WORKSPACE_ROOT", ".git"]
+
+[features]
+codex_hooks = true

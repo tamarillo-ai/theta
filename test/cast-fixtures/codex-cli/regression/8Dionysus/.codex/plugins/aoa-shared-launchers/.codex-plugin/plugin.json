@@ -1,0 +1,32 @@
+{
+  "name": "aoa-shared-launchers",
+  "version": "0.1.0",
+  "description": "Installable AoA launcher skills for workspace orientation, growth snapshots, seed routing, and Codex wiring diagnosis.",
+  "author": {
+    "name": "8Dionysus",
+    "url": "https://github.com/8Dionysus"
+  },
+  "repository": "https://github.com/8Dionysus/Agents-of-Abyss",
+  "keywords": [
+    "aoa",
+    "codex",
+    "skills",
+    "mcp",
+    "workspace"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AoA Shared Launchers",
+    "shortDescription": "Install AoA cross-repo launcher skills",
+    "longDescription": "Bundles shared AoA launcher skills that rely on project-scoped MCP surfaces for workspace orientation, derived observability, seed routing, and wiring diagnosis.",
+    "developerName": "8Dionysus",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Use AoA Shared Launchers to map which repo owns this cross-repo task and propose one bounded move.",
+      "Use AoA Shared Launchers to produce a growth snapshot across workspace, stats, and seed route context."
+    ]
+  }
+}

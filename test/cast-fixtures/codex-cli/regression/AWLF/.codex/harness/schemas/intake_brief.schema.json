@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "intake_brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "goal",
+    "success_criteria",
+    "in_scope",
+    "out_of_scope",
+    "constraints",
+    "local_facts",
+    "user_preferences",
+    "open_questions",
+    "ready_for_design"
+  ],
+  "properties": {
+    "goal": {"type": "string"},
+    "success_criteria": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "in_scope": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "out_of_scope": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "constraints": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "local_facts": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "user_preferences": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "ready_for_design": {"type": "boolean"}
+  }
+}

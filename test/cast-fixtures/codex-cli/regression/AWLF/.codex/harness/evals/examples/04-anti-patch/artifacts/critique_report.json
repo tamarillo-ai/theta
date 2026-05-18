@@ -1,0 +1,21 @@
+{
+  "review_scope": "评审在现有角色上继续追加例外规则的提案。",
+  "blocking_issues": [
+    {
+      "title": "补丁式扩展",
+      "reason": "继续堆规则不能消除重复提示与规范漂移。",
+      "required_fix": "回退到 DESIGN，重构为 harness 工件。"
+    }
+  ],
+  "system_risks": [
+    "规则在多个文件重复维护",
+    "角色卡继续膨胀"
+  ],
+  "counterexamples": [
+    "新增第十个例外规则后，其他角色卡仍无法保持一致"
+  ],
+  "patch_smells": [
+    "增加例外分支而不调整系统结构"
+  ],
+  "status": "revise"
+}

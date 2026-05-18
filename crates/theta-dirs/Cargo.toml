@@ -1,0 +1,19 @@
+[package]
+name = "theta-dirs"
+version = "0.0.1"
+description = "XDG directory resolution for theta (cache, config, data)"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+etcetera = { workspace = true }

@@ -1,0 +1,23 @@
+# Optional Codex metadata for aoa-workspace-recon
+interface:
+  display_name: AoA Workspace Recon
+  short_description: Map the AoA sibling workspace and ownership boundaries before
+    cross-repo work.
+  default_prompt: Use AoA Workspace Recon to identify the owning repo, supporting
+    surfaces, and the first bounded move for this cross-repo task.
+policy:
+  allow_implicit_invocation: true
+dependencies:
+  tools:
+  - type: mcp
+    value: aoa_workspace
+    description: AoA workspace orientation MCP server
+    transport: stdio
+  - type: mcp
+    value: aoa_stats
+    description: AoA derived stats MCP server
+    transport: stdio
+  - type: mcp
+    value: dionysus
+    description: Dionysus seed-route MCP server
+    transport: stdio

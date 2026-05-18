@@ -1,0 +1,8 @@
+[mcp_servers.fetch]
+command = "uvx"
+args = ["mcp-fetch"]
+
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+env = { ROOT = "/workspace" }

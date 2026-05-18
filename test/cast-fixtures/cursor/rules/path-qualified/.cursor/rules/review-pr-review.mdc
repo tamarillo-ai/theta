@@ -1,0 +1,8 @@
+---
+description: Code review checklist
+alwaysApply: true
+---
+When reviewing a pull request, check for:
+- Security vulnerabilities
+- Missing error handling
+- Test coverage

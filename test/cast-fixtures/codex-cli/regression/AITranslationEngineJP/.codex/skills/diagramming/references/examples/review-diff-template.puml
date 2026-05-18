@@ -1,0 +1,74 @@
+@startuml
+
+title <task-name> review diff
+
+top to bottom direction
+hide methods
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 90
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor<<existing>> #F7F9FC
+    BorderColor<<existing>> #546E7A
+    FontColor<<existing>> #243447
+    BackgroundColor<<added>> #EEF9EF
+    BorderColor<<added>> #2E7D32
+    FontColor<<added>> #1B5E20
+    BackgroundColor<<removed>> #FFF1F1
+    BorderColor<<removed>> #C62828
+    FontColor<<removed>> #7F1D1D
+    BackgroundColor<<changed>> #FFF8E1
+    BorderColor<<changed>> #F9A825
+    FontColor<<changed>> #4E342E
+    BackgroundColor<<risk>> #F4F7FA
+    BorderColor<<risk>> #607D8B
+    FontColor<<risk>> #1F2933
+}
+
+legend bottom right
+    |= Style |= Meaning |
+    |<#F7F9FC> existing | unchanged source of truth |
+    |<#EEF9EF> added | new element or new route |
+    |<#FFF1F1> removed | deleted or retired element |
+    |<#FFF8E1> changed | behavior or responsibility changed |
+    |<#F4F7FA> risk | review note, constraint, or split reason |
+endlegend
+
+package "overview" as Overview {
+    class "Current Boundary" as CurrentBoundary <<existing>> {
+        responsibility
+    }
+
+    class "New Boundary" as NewBoundary <<added>> {
+        responsibility
+    }
+
+    class "Retired Boundary" as RetiredBoundary <<removed>> {
+        responsibility
+    }
+
+    class "Changed Contract" as ChangedContract <<changed>> {
+        responsibility
+    }
+
+    class "Split Trigger" as SplitTrigger <<risk>> {
+        why this diagram stays small
+    }
+}
+
+CurrentBoundary -[#F9A825]-> ChangedContract : changed responsibility
+NewBoundary -[#2E7D32,dashed]-> ChangedContract : new route
+RetiredBoundary -[#C62828,dashed]-> ChangedContract : removed route
+SplitTrigger -[#607D8B,dotted]-> ChangedContract : readability note
+
+note bottom of Overview
+    Generate a temporary PNG under /tmp.
+    Confirm that edges, labels, spacing,
+    line length, crossings, notes, and legend are readable.
+end note
+
+@enduml

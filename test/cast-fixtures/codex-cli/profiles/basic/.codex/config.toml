@@ -1,0 +1,10 @@
+model = "gpt-5.5"
+sandbox_mode = "workspace-write"
+
+[profiles.deep-review]
+model_reasoning_effort = "high"
+sandbox_mode = "read-only"
+
+[profiles.fast]
+model = "gpt-5.5-mini"
+model_reasoning_effort = "low"

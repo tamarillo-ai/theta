@@ -1,0 +1,12 @@
+# Codex CLI configuration — Direct OpenAI API
+# Install: ./install.sh
+# Manual: cp to ~/.codex/config.toml
+
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+
+[features]
+multi_agent = true
+
+[tui]
+status_line = ["model-with-reasoning", "git-branch", "context-remaining"]

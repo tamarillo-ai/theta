@@ -1,0 +1,18 @@
+{
+  "id": "01-ambiguous-intake",
+  "title": "模糊需求澄清",
+  "required_artifacts": ["manifest", "transcript", "admission_result", "intake_brief", "workflow_state"],
+  "checks": [
+    {"kind": "schema_valid", "artifact": "manifest", "schema": "session_manifest.schema.json"},
+    {"kind": "schema_valid", "artifact": "admission_result", "schema": "admission_result.schema.json"},
+    {"kind": "schema_valid", "artifact": "intake_brief", "schema": "intake_brief.schema.json"},
+    {"kind": "schema_valid", "artifact": "workflow_state", "schema": "workflow_state.schema.json"},
+    {"kind": "field_equals", "artifact": "manifest", "path": "eval_id", "expected": "01-ambiguous-intake"},
+    {"kind": "stage_contains", "stage": "DISCOVERY"},
+    {"kind": "array_min_length", "artifact": "intake_brief", "path": "success_criteria", "min": 1},
+    {"kind": "array_min_length", "artifact": "intake_brief", "path": "constraints", "min": 1},
+    {"kind": "bool_true", "artifact": "intake_brief", "path": "ready_for_design"},
+    {"kind": "transcript_contains_any", "needles": ["成功标准", "范围", "约束"]},
+    {"kind": "transcript_contains_any", "needles": ["请确认", "需要明确", "?"]}
+  ]
+}

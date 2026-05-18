@@ -1,0 +1,29 @@
+[package]
+name = "theta-registry"
+version = "0.0.1"
+description = "MCP registry client — fetches server metadata from registries"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+theta-dirs = { workspace = true }
+fs-err = { workspace = true }
+percent-encoding = { workspace = true }
+reqwest = { version = "0.12", features = ["blocking", "json"] }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[features]
+online-tests = []
+
+[lints]
+workspace = true

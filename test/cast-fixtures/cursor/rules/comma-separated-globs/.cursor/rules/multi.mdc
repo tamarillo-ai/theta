@@ -1,0 +1,6 @@
+---
+globs: src/db/*.ts,src/middleware/*.ts,src/lib/*.ts
+alwaysApply: false
+---
+Use Supabase for backend services.
+Follow Supabase guidelines for security.

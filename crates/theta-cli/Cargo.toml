@@ -1,0 +1,30 @@
+[package]
+name = "theta-cli"
+version = "0.0.1"
+description = "Clap CLI definitions for theta"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+test = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-harness = { workspace = true }
+theta-schema = { workspace = true }
+theta-static = { workspace = true }
+clap = { workspace = true, features = ["derive", "string"] }
+clap-markdown = { workspace = true, optional = true }
+
+[features]
+docgen = ["dep:clap-markdown"]
+
+[[example]]
+name = "gen_cli_reference"
+required-features = ["docgen"]

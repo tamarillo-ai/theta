@@ -1,0 +1,53 @@
+model = "gpt-5.4"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+web_search = "live"
+
+[features]
+multi_agent = true
+shell_snapshot = true
+unified_exec = true
+powershell_utf8 = true
+elevated_windows_sandbox = true
+experimental_windows_sandbox = true
+
+[agents]
+max_threads = 8
+max_depth = 5
+
+[agents.router]
+description = "路由代理：识别任务意图、风险等级、研究需求与核心角色召回建议。"
+config_file = "agents/router.toml"
+
+[agents.pipeline]
+description = "流程编排代理：维护状态机、执行门禁、请求设计审批并汇总交付。"
+config_file = "agents/pipeline.toml"
+
+[agents.planner]
+description = "规划代理：通过澄清与系统设计形成可执行设计包。"
+config_file = "agents/planner.toml"
+
+[agents.explorer]
+description = "探索代理：提供仓库证据、成熟开源方案与最新信息研究。"
+config_file = "agents/explorer.toml"
+
+[agents.architecture_guardian]
+description = "架构守门代理：从系统边界、依赖方向与迁移路径裁决方案。"
+config_file = "agents/architecture_guardian.toml"
+
+[agents.reviewer]
+description = "审查代理：寻找反例、补丁化风险、测试缺口与放行条件。"
+config_file = "agents/reviewer.toml"
+
+[agents.implementer]
+description = "实现代理：仅在设计获批后按方案落地改动。"
+config_file = "agents/implementer.toml"
+
+[agents.tester]
+description = "验证代理：执行验证计划并输出可复现证据。"
+config_file = "agents/tester.toml"
+
+[agents.docs]
+description = "文档代理：处理 DIA、术语一致性与规范同步。"
+config_file = "agents/docs.toml"

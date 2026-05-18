@@ -1,0 +1,8 @@
+{
+  "bundle_name": "example-04-anti-patch",
+  "eval_id": "04-anti-patch",
+  "generated_at": "2026-03-07T10:30:00+08:00",
+  "completed_stages": ["INTAKE", "ADMISSION", "DISCOVERY", "DESIGN", "DESIGN_CRITIQUE"],
+  "user_approval_granted": false,
+  "notes": ["示例 bundle：验证补丁式方案会被打回。"]
+}

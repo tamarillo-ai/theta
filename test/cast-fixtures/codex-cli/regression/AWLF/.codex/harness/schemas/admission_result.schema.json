@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "admission_result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "workflow_mode",
+    "risk_level",
+    "admission_decision_log",
+    "activated_roles",
+    "requires_live_research",
+    "requires_user_approval"
+  ],
+  "properties": {
+    "workflow_mode": {
+      "type": "string",
+      "enum": ["single-agent-lite", "multi-agent-full"]
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["L1", "L2", "L3", "L4"]
+    },
+    "admission_decision_log": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "activated_roles": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "requires_live_research": {
+      "type": "boolean"
+    },
+    "requires_user_approval": {
+      "type": "boolean"
+    },
+    "why_not_multi": {
+      "type": "string"
+    }
+  }
+}

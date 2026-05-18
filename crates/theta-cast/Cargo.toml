@@ -1,0 +1,37 @@
+[package]
+name = "theta-cast"
+version = "0.0.1"
+description = "cast theta.toml to harness-native config formats"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+
+[lib]
+doctest = false
+
+[lints]
+workspace = true
+
+[dependencies]
+theta-harness = { workspace = true }
+theta-manifest = { workspace = true }
+theta-schema = { workspace = true }
+theta-static = { workspace = true }
+theta-dirs = { workspace = true }
+anyhow = { workspace = true }
+fs-err = { workspace = true }
+jsonc-parser = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_norway = { workspace = true }
+semver = { workspace = true }
+toml = { workspace = true }
+toml_edit = { workspace = true }
+tracing = { workspace = true }
+wait-timeout = { workspace = true }
+tempfile = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
