@@ -5,7 +5,7 @@ Rust CLI for managing agent configurations defined by [theta-spec](https://theta
 ## Installation
 
 ```bash
-curl -sfL https://raw.githubusercontent.com/tamarillo/theta/main/scripts/install.sh | bash
+curl -sfL https://raw.githubusercontent.com/tamarillo-ai/theta/main/scripts/install.sh | bash
 ```
 
 ## Quick start
