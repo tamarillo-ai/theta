@@ -38,7 +38,7 @@ fn list_skills_shows_registered_skills() {
     let mut source = toml_edit::InlineTable::new();
     source.insert(
         "git",
-        toml_edit::Value::from("https://github.com/tamarillo/skills"),
+        toml_edit::Value::from("https://github.com/tamarillo-ai/skills"),
     );
     source.insert("ref", toml_edit::Value::from("main"));
     skill["source"] = toml_edit::value(source);

@@ -5,8 +5,8 @@ resolver = "2"
 [workspace.package]
 edition = "2024"
 rust-version = "1.85.0"
-homepage = "https://github.com/tamarillo/theta"
-repository = "https://github.com/tamarillo/theta"
+homepage = "https://github.com/tamarillo-ai/theta"
+repository = "https://github.com/tamarillo-ai/theta"
 authors = ["tamarillo"]
 license = "MIT OR Apache-2.0"
 

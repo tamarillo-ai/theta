@@ -1,7 +1,7 @@
 site_name: theta
 site_description: Rust CLI for managing agent configurations defined by theta-spec.
 site_url: https://theta.tamarillo.ai/
-repo_url: https://github.com/tamarillo/theta
+repo_url: https://github.com/tamarillo-ai/theta
 repo_name: theta
 
 theme:

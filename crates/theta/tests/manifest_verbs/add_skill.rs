@@ -63,7 +63,7 @@ fn add_skill_git_source_writes_correct_toml() {
     let mut source = toml_edit::InlineTable::new();
     source.insert(
         "git",
-        toml_edit::Value::from("https://github.com/tamarillo/skills"),
+        toml_edit::Value::from("https://github.com/tamarillo-ai/skills"),
     );
     source.insert("branch", toml_edit::Value::from("main"));
     skill["source"] = toml_edit::value(source);
@@ -80,7 +80,7 @@ fn add_skill_git_source_writes_correct_toml() {
             subdirectory,
             ..
         } => {
-            assert_eq!(git, "https://github.com/tamarillo/skills");
+            assert_eq!(git, "https://github.com/tamarillo-ai/skills");
             assert_eq!(branch.as_deref(), Some("main"));
             assert!(subdirectory.is_none());
         }
