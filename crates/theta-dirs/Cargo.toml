@@ -1,6 +1,6 @@
 [package]
 name = "theta-dirs"
-version = "0.0.1"
+version.workspace = true
 description = "XDG directory resolution for theta (cache, config, data)"
 edition = { workspace = true }
 rust-version = { workspace = true }

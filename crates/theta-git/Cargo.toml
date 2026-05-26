@@ -1,6 +1,6 @@
 [package]
 name = "theta-git"
-version = "0.0.1"
+version.workspace = true
 description = "git fetch, ref resolution, and content-addressed cache for theta"
 edition = { workspace = true }
 rust-version = { workspace = true }

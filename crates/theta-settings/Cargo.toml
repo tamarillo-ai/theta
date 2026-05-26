@@ -1,6 +1,6 @@
 [package]
 name = "theta-settings"
-version = "0.0.1"
+version.workspace = true
 description = "Resolved settings for the theta CLI (CLI > env > defaults)"
 edition = { workspace = true }
 rust-version = { workspace = true }

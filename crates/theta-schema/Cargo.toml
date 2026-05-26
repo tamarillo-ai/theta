@@ -1,6 +1,6 @@
 [package]
 name = "theta-schema"
-version = "0.0.1"
+version.workspace = true
 description = "theta.toml types, deserialization, and JSON Schema generation"
 edition = { workspace = true }
 rust-version = { workspace = true }

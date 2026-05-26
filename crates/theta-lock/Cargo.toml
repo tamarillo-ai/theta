@@ -1,6 +1,6 @@
 [package]
 name = "theta-lock"
-version = "0.0.1"
+version.workspace = true
 description = "theta.lock types, hashing, and staleness detection"
 edition = { workspace = true }
 rust-version = { workspace = true }

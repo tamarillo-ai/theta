@@ -3,6 +3,7 @@ members = ["crates/*"]
 resolver = "2"
 
 [workspace.package]
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.85.0"
 homepage = "https://github.com/tamarillo-ai/theta"
@@ -11,20 +12,20 @@ authors = ["tamarillo"]
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
-theta-cast = { version = "0.0.1", path = "crates/theta-cast" }
-theta-cli = { version = "0.0.1", path = "crates/theta-cli" }
-theta-harness = { version = "0.0.1", path = "crates/theta-harness" }
-theta-dirs = { version = "0.0.1", path = "crates/theta-dirs" }
-theta-git = { version = "0.0.1", path = "crates/theta-git" }
-theta-manifest = { version = "0.0.1", path = "crates/theta-manifest" }
-theta-schema = { version = "0.0.1", path = "crates/theta-schema" }
-theta-install = { version = "0.0.1", path = "crates/theta-install" }
-theta-lock = { version = "0.0.1", path = "crates/theta-lock" }
-theta-registry = { version = "0.0.1", path = "crates/theta-registry" }
-theta-settings = { version = "0.0.1", path = "crates/theta-settings" }
-theta-static = { version = "0.0.1", path = "crates/theta-static" }
-theta-store = { version = "0.0.1", path = "crates/theta-store" }
-theta-test = { version = "0.0.1", path = "crates/theta-test" }
+theta-cast = { version = "0.1.0", path = "crates/theta-cast" }
+theta-cli = { version = "0.1.0", path = "crates/theta-cli" }
+theta-harness = { version = "0.1.0", path = "crates/theta-harness" }
+theta-dirs = { version = "0.1.0", path = "crates/theta-dirs" }
+theta-git = { version = "0.1.0", path = "crates/theta-git" }
+theta-manifest = { version = "0.1.0", path = "crates/theta-manifest" }
+theta-schema = { version = "0.1.0", path = "crates/theta-schema" }
+theta-install = { version = "0.1.0", path = "crates/theta-install" }
+theta-lock = { version = "0.1.0", path = "crates/theta-lock" }
+theta-registry = { version = "0.1.0", path = "crates/theta-registry" }
+theta-settings = { version = "0.1.0", path = "crates/theta-settings" }
+theta-static = { version = "0.1.0", path = "crates/theta-static" }
+theta-store = { version = "0.1.0", path = "crates/theta-store" }
+theta-test = { version = "0.1.0", path = "crates/theta-test" }
 
 anstream = "0.6"
 anyhow = "1.0"

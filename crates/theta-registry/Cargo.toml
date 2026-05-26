@@ -1,6 +1,6 @@
 [package]
 name = "theta-registry"
-version = "0.0.1"
+version.workspace = true
 description = "MCP registry client — fetches server metadata from registries"
 edition = { workspace = true }
 rust-version = { workspace = true }

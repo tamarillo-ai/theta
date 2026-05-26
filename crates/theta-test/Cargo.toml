@@ -1,6 +1,6 @@
 [package]
 name = "theta-test"
-version = "0.0.1"
+version.workspace = true
 description = "Shared test utilities for theta integration tests"
 edition = { workspace = true }
 rust-version = { workspace = true }
