@@ -25,9 +25,11 @@ impl StoreHandle {
     pub fn open() -> Result<Self> {
         let data_dir =
             theta_dirs::data_dir().context("could not determine theta data directory")?;
-        Ok(Self {
+        let handle = Self {
             layout: SystemStoreLayout::new(&data_dir),
-        })
+        };
+        handle.ensure_builtins()?;
+        Ok(handle)
     }
 
     // open at an explicit root - used in tests
@@ -39,6 +41,45 @@ impl StoreHandle {
 
     pub fn layout(&self) -> &SystemStoreLayout {
         &self.layout
+    }
+
+    /// Seed any missing builtin skills into the system store.
+    ///
+    /// Called automatically by `open()` callers that want builtins available.
+    /// Skips skills that already exist on disk (never overwrites user modifications).
+    pub fn ensure_builtins(&self) -> Result<()> {
+        for builtin in theta_static::BUILTIN_SKILLS {
+            let skill_dir = self.layout.skill(builtin.name);
+            if skill_dir.exists() {
+                continue;
+            }
+
+            fs_err::create_dir_all(&skill_dir).with_context(|| {
+                format!(
+                    "failed to create builtin skill directory: {}",
+                    skill_dir.display()
+                )
+            })?;
+
+            for file in builtin.files {
+                let dest = skill_dir.join(file.path);
+                if let Some(parent) = dest.parent() {
+                    fs_err::create_dir_all(parent)?;
+                }
+                fs_err::write(&dest, file.content)
+                    .with_context(|| format!("failed to write builtin file: {}", dest.display()))?;
+            }
+
+            self.upsert_index(
+                "skills",
+                builtin.name,
+                builtin.description,
+                Path::new("builtin"),
+                None,
+            )
+            .with_context(|| format!("failed to index builtin skill '{}'", builtin.name))?;
+        }
+        Ok(())
     }
 
     pub fn load_index(&self) -> Result<StoreIndex> {
@@ -808,5 +849,127 @@ mod tests {
         assert!(err.to_string().contains("not found"));
         // error message should reference correct command
         assert!(err.to_string().contains("theta list store"));
+    }
+
+    // builtin skill validation
+
+    #[test]
+    fn builtin_skills_have_valid_skill_md() {
+        // Validates that every builtin skill shipped in the binary has:
+        // - A SKILL.md file in its file list
+        // - Parseable YAML frontmatter
+        // - A `name` field matching the builtin's declared name
+        // - A non-empty `description`
+        // - Is not detected as a scaffold template
+        for builtin in theta_static::BUILTIN_SKILLS {
+            let skill_md_file = builtin
+                .files
+                .iter()
+                .find(|f| f.path == "SKILL.md")
+                .unwrap_or_else(|| {
+                    panic!(
+                        "builtin skill '{}' is missing SKILL.md in its file list",
+                        builtin.name
+                    )
+                });
+
+            let content = skill_md_file.content;
+
+            assert!(
+                !theta_static::is_skill_template(content),
+                "builtin skill '{}' SKILL.md is still a scaffold template",
+                builtin.name,
+            );
+
+            let (yaml_str, _body) = theta_static::split_frontmatter(content);
+            let yaml_str = yaml_str.unwrap_or_else(|| {
+                panic!(
+                    "builtin skill '{}' SKILL.md has no YAML frontmatter",
+                    builtin.name
+                )
+            });
+
+            let fm = theta_schema::SkillFrontmatter::parse(yaml_str).unwrap_or_else(|e| {
+                panic!(
+                    "builtin skill '{}' SKILL.md has unparsable frontmatter: {e}",
+                    builtin.name
+                )
+            });
+
+            assert_eq!(
+                fm.name.as_deref(),
+                Some(builtin.name),
+                "builtin skill '{}' frontmatter `name` does not match declared name",
+                builtin.name,
+            );
+
+            assert!(
+                fm.description.as_ref().is_some_and(|d| !d.is_empty()),
+                "builtin skill '{}' frontmatter has empty or missing `description`",
+                builtin.name,
+            );
+
+            assert!(
+                !theta_static::is_placeholder_skill_description(
+                    fm.description.as_deref().unwrap_or("")
+                ),
+                "builtin skill '{}' still has placeholder description",
+                builtin.name,
+            );
+        }
+    }
+
+    #[test]
+    fn ensure_builtins_seeds_missing_skills() {
+        let (_dir, store) = store_in_tmp();
+
+        // Fresh store — no skills yet
+        assert!(store.skill_path("use-theta").is_none());
+
+        store.ensure_builtins().unwrap();
+
+        // After seeding, the skill should exist on disk
+        let skill_path = store.skill_path("use-theta");
+        assert!(
+            skill_path.is_some(),
+            "use-theta not found after ensure_builtins"
+        );
+
+        let skill_md = skill_path.unwrap().join("SKILL.md");
+        assert!(skill_md.exists(), "SKILL.md not written for use-theta");
+
+        // And be present in the index
+        let index = store.load_index().unwrap();
+        assert!(index.skills.contains_key("use-theta"));
+        assert_eq!(index.skills["use-theta"].source_project, "builtin");
+    }
+
+    #[test]
+    fn ensure_builtins_does_not_overwrite_existing() {
+        let (_dir, store) = store_in_tmp();
+
+        // Seed once
+        store.ensure_builtins().unwrap();
+
+        // User modifies the skill
+        let skill_md = store.layout().skill_md("use-theta");
+        fs_err::write(&skill_md, "# user-modified content\n").unwrap();
+
+        // Re-seed should NOT overwrite
+        store.ensure_builtins().unwrap();
+
+        let content = fs_err::read_to_string(&skill_md).unwrap();
+        assert_eq!(content, "# user-modified content\n");
+    }
+
+    #[test]
+    fn ensure_builtins_is_idempotent() {
+        let (_dir, store) = store_in_tmp();
+
+        store.ensure_builtins().unwrap();
+        store.ensure_builtins().unwrap();
+
+        let index = store.load_index().unwrap();
+        assert_eq!(index.skills.len(), theta_static::BUILTIN_SKILLS.len());
     }
 }
