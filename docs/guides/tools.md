@@ -8,7 +8,7 @@ Provide the transport directly:
 
 ```bash
 # stdio transport
-theta add tool fetch --command "uvx mcp-fetch"
+theta add tool fetch --command "uvx mcp-server-fetch"
 
 # HTTP transport
 theta add tool api --url "https://api.example.com/mcp"
@@ -18,7 +18,7 @@ Result in `theta.toml`:
 
 ```toml
 [tools.fetch]
-command = ["uvx", "mcp-fetch"]
+command = ["uvx", "mcp-server-fetch"]
 
 [tools.api]
 url = "https://api.example.com/mcp"

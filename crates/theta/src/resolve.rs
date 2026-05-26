@@ -173,6 +173,7 @@ pub(crate) fn check_refs(
     strict_materialization: bool,
     diags: &mut Vec<Diagnostic>,
 ) {
+    let layout = theta_static::ThetaProjectLayout::new(project_dir);
     let refs = collect_manifest_refs(manifest);
     for r in refs {
         match check_resource(&r.resource, project_dir) {
@@ -181,6 +182,10 @@ pub(crate) fn check_refs(
                 diags.push(Diagnostic::error(r.context, format!("{} {}", r.label, msg)));
             }
             RefStatus::Unchecked(msg) => {
+                // if the resource is already materialized in .theta/, suppress the warning.
+                if is_materialized(&r.resolved_key, &layout) {
+                    continue;
+                }
                 let is_instruction_ref = r.context.starts_with("[instructions");
                 if strict_materialization && is_instruction_ref {
                     diags.push(Diagnostic::error(r.context, format!("{} {}", r.label, msg)));
@@ -189,6 +194,22 @@ pub(crate) fn check_refs(
                 }
             }
         }
+    }
+}
+
+/// Returns `true` when the resource identified by `key` already exists in `.theta/`.
+fn is_materialized(key: &ResolvedRefKey, layout: &theta_static::ThetaProjectLayout) -> bool {
+    match key {
+        ResolvedRefKey::Named { table_path, name } => match *table_path {
+            "[skills]" => layout.skill(name).join(SKILL_FILE_NAME).exists(),
+            "[instructions.rules]" => layout.rule(name).exists(),
+            "[[subagents]].ref" => layout.subagent_manifest(name).exists(),
+            _ => false,
+        },
+        ResolvedRefKey::Field {
+            manifest_path: "[instructions].system",
+        } => layout.system().exists(),
+        _ => false,
     }
 }
 

@@ -61,7 +61,7 @@ source = { git = "https://github.com/vercel-labs/agent-skills", branch = "main",
 The long form works too:
 
 ```bash
-theta add skill deploy --git https://github.com/org/skills --branch main --subdirectory deploy
+theta add skill react-best-practices --git https://github.com/vercel-labs/agent-skills --branch main --subdirectory skills/react-best-practices
 ```
 
 ### Resolution
@@ -75,7 +75,7 @@ Remote skills are fetched during `theta sync`:
 Use `--no-sync` to add without fetching immediately:
 
 ```bash
-theta add skill deploy org/skills/deploy@main --no-sync
+theta add skill vercel-labs/agent-skills/skills/react-best-practices@main --no-sync
 ```
 
 ## Adding from the system store

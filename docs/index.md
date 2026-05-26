@@ -17,12 +17,12 @@ cargo install --path crates/theta
 ## Quick start
 
 ```bash
-theta init                                     # scaffold theta.toml
-theta add rule python-types                    # add a rule
-theta add tool fetch --command "uvx mcp-fetch" # mcp tool manual addition
-theta add skill deploy org/skills@main         # GitHub shorthand
-theta check                                    # validate everything
-theta cast to claude-code                      # --> CLAUDE.md + .mcp.json + .claude/
+theta init # scaffold theta.toml
+theta add rule python-types # add a rule
+theta add tool fetch --command "uvx mcp-server-fetch" # MCP tool (stdio)
+theta add skill vercel-labs/agent-skills/skills/web-design-guidelines@main # skill from GitHub
+theta check # validate everything
+theta cast to claude-code # --> CLAUDE.md + .mcp.json + .claude/
 ```
 
 ## What it does

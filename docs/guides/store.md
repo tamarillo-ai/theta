@@ -17,8 +17,8 @@ For skills, theta also accepts direct sources (no `theta.toml` required):
 
 ```bash
 theta register skill osint --path ./skills/osint
-theta register skill deploy --git https://github.com/org/skills --subdirectory deploy
-theta register skill deploy org/skills/deploy@main
+theta register skill deploy-to-vercel --git https://github.com/vercel-labs/agent-skills --subdirectory skills/deploy-to-vercel
+theta register skill deploy-to-vercel vercel-labs/agent-skills/skills/deploy-to-vercel@main
 ```
 
 Use `--force` to overwrite an existing entry.

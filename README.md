@@ -13,9 +13,9 @@ curl -sfL https://raw.githubusercontent.com/tamarillo-ai/theta/main/scripts/inst
 ```bash
 theta init                                     # scaffold theta.toml
 theta add rule python-types                    # add a rule
-theta add tool fetch --command "uvx mcp-fetch" # mcp tool manual addition
-theta add tool agency.lona/trading             # mcp tool add from registry
-theta add skill deploy org/skills@main         # GitHub shorthand
+theta add tool fetch --command "uvx mcp-server-fetch"                       # MCP tool (stdio)
+theta add tool context7 --command "npx -y @upstash/context7-mcp@latest"    # another MCP tool
+theta add skill vercel-labs/agent-skills/skills/web-design-guidelines@main  # skill from GitHub
 theta check                                    # validate everything
 theta cast to claude-code                      # --> CLAUDE.md + .mcp.json + .claude/
 ```

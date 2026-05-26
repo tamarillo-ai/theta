@@ -46,7 +46,7 @@ Fill these files with relevant info. Requirements vary depending on harness — 
 MCP tools and skills are crucial in any modern setting.
 
 ```bash
-theta add tool fetch --command "uvx mcp-fetch" # hardcoding the command
+theta add tool fetch --command "uvx mcp-server-fetch" # hardcoding the command
 theta add skill mem-mgmt # scaffolds skills/mem-mgmt.md/SKILL.md and helper optional folders for extra resources
 theta add skill vercel-labs/agent-skills/skills/react-native-skills # fetch skills from Vercel
 ```

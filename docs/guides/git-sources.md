@@ -22,13 +22,13 @@ For non-GitHub repos or when you need full control:
 
 ```bash
 # remote skill with a tag
-theta add skill deploy --git https://gitlab.com/org/skills --tag v2.0 --subdirectory deploy
+theta add skill deploy-to-vercel --git https://github.com/vercel-labs/agent-skills --tag v2.0 --subdirectory skills/deploy-to-vercel
 
 # remote rule pinned to a branch
 theta add rule review --git https://github.com/org/rules --branch main --file review.md
 
 # remote skill pinned to a commit
-theta add skill frozen --git https://github.com/org/skills --rev abc1234
+theta add skill react-best-practices --git https://github.com/vercel-labs/agent-skills --rev abc1234 --subdirectory skills/react-best-practices
 ```
 
 Exactly one of `--branch`, `--tag`, or `--rev` **MAY** be specified. They are mutually exclusive.
@@ -48,7 +48,7 @@ Skills and rules have opposite defaults for syncing after add:
 - **Skills** sync by default. Use `--no-sync` to defer:
 
 ```bash
-theta add skill osint org/skills/osint@main --no-sync
+theta add skill vercel-labs/agent-skills/skills/web-design-guidelines@main --no-sync
 ```
 
 - **Rules** do not sync by default. Use `--sync` to trigger immediate resolution:
