@@ -1,6 +1,6 @@
 [package]
 name = "theta-install"
-version = "0.0.1"
+version.workspace = true
 description = "materialization and validation of the .theta/ project environment"
 edition = { workspace = true }
 rust-version = { workspace = true }

@@ -1,6 +1,6 @@
 [package]
 name = "theta"
-version = "0.0.1"
+version.workspace = true
 description = "AI agent configuration manager — the theta CLI"
 edition = { workspace = true }
 rust-version = { workspace = true }

@@ -1,6 +1,6 @@
 [package]
 name = "theta-static"
-version = "0.0.1"
+version.workspace = true
 description = "Constants and static strings for the theta CLI"
 edition = { workspace = true }
 rust-version = { workspace = true }
