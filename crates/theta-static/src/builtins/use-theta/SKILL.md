@@ -21,7 +21,7 @@ Requires a Rust toolchain (`rustup`). The installer clones and runs `cargo insta
 ```
 theta.toml ──(theta lock)──> theta.lock ──(theta sync)──> .theta/ ──(theta cast to <harness>)──> harness-native files
      ▲                                                                                                │
-     └────────────────────────(theta cast from <harness>)───────────────────────────────────────────┘
+     └────────────────────────(theta cast from <harness>)─────────────────────────────────────────────┘
 ```
 
 - **`theta.toml`** — declarative, harness-agnostic manifest. Conforms to [theta-spec](https://theta-spec.tamarillo.ai/) schema `2026-04`.
