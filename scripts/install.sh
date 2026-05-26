@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # theta installer.
-# Usage: curl -sfL https://raw.githubusercontent.com/tamarillo-ai/_theta/main/scripts/install.sh | bash
+# Usage: curl -sfL https://raw.githubusercontent.com/tamarillo-ai/theta/main/scripts/install.sh | bash
 set -eu
 
-REPO="https://github.com/tamarillo-ai/_theta.git"
+REPO="https://github.com/tamarillo-ai/theta.git"
 REF="main"  # bump this in the commit that ships a new release
 
 tmp=$(mktemp -d)
