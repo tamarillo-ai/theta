@@ -517,6 +517,36 @@ pub fn copy_dir_recursive(src: &Path, dest: &Path) -> Result<()> {
 pub fn kebab_case(s: &str) -> String {
     s.to_kebab_case()
 }
+// Builtin skills — shipped inside the binary, seeded into the system store.
+
+/// A single file inside a builtin skill directory.
+pub struct BuiltinFile {
+    /// Relative path within the skill dir (e.g. `"SKILL.md"`, `"scripts/setup.sh"`).
+    pub path: &'static str,
+    /// File content, embedded at compile time via `include_str!`.
+    pub content: &'static str,
+}
+
+/// A builtin skill: name + description + one or more files.
+pub struct BuiltinSkill {
+    /// Kebab-case name (also the directory name in the store).
+    pub name: &'static str,
+    /// Short description for the store index entry.
+    pub description: &'static str,
+    /// Files to write into `store/skills/<name>/`. Must include `SKILL.md`.
+    pub files: &'static [BuiltinFile],
+}
+
+/// All builtin skills land seed `theta-store` on installation.
+pub const BUILTIN_SKILLS: &[BuiltinSkill] = &[BuiltinSkill {
+    name: "use-theta",
+    description: "Use the theta CLI to manage agent configurations: add/remove rules, tools, skills, subagents; cast to and from harnesses; validate; lock and materialize dependencies.",
+    files: &[BuiltinFile {
+        path: "SKILL.md",
+        content: include_str!("builtins/use-theta/SKILL.md"),
+    }],
+}];
+
 /// Split `---\nyaml\n---\nbody` into (`yaml_str`, `body`).
 /// Returns `(None, full_input)` if no frontmatter delimiters are found.
 pub fn split_frontmatter(input: &str) -> (Option<&str>, &str) {
