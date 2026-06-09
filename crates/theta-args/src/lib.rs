@@ -495,7 +495,12 @@ pub struct TreeArgs {
 }
 
 #[derive(Debug, clap::Args)]
-pub struct SchemaArgs {}
+pub struct SchemaArgs {
+    /// Emit a JSON tree of every verb in the CLI (name, path, args).
+    /// When set, the manifest JSON Schema is not printed.
+    #[arg(long)]
+    pub list_verbs: bool,
+}
 
 #[derive(Debug, clap::Args)]
 pub struct RmNamespace {

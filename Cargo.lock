@@ -1922,6 +1922,7 @@ dependencies = [
  "owo-colors",
  "predicates",
  "schemars 0.8.22",
+ "serde",
  "serde_json",
  "shlex",
  "tempfile",

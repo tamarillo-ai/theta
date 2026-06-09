@@ -603,7 +603,11 @@ Print the subagent dependency tree
 
 Print the theta.toml JSON Schema
 
-**Usage:** `theta schema`
+**Usage:** `theta schema [OPTIONS]`
+
+###### **Options:**
+
+* `--list-verbs` — Emit a JSON tree of every verb in the CLI (name, path, args). When set, the manifest JSON Schema is not printed
 
 
 
