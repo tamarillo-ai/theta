@@ -28,16 +28,17 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-24.04
+            manylinux: quay.io/pypa/manylinux_2_28_x86_64
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-24.04
             cross: true
-          - target: x86_64-apple-darwin
-            os: macos-13
           - target: aarch64-apple-darwin
-            os: macos-14
+            os: macos-15
+          - target: x86_64-apple-darwin
+            os: macos-15
           - target: x86_64-pc-windows-msvc
-            os: windows-latest
+            os: windows-2025
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -45,6 +46,7 @@ jobs:
           persist-credentials: false
 
       - name: install rust toolchain
+        if: ${{ !matrix.manylinux }}
         shell: bash
         run: |
           rustup set profile minimal
@@ -55,17 +57,35 @@ jobs:
         if: matrix.cross
         run: cargo install --locked cross
 
-      - name: build
+      - name: build (cross)
+        if: matrix.cross
+        shell: bash
+        run: cross build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
+
+      - name: build (manylinux)
+        if: matrix.manylinux
         shell: bash
         run: |
-          if [ "${{ matrix.cross }}" = "true" ]; then
-            cross build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
-          else
-            cargo build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
-          fi
+          docker run --rm \
+            -v "$PWD:/work" -w /work \
+            -e CARGO_HOME=/work/.cargo \
+            ${{ matrix.manylinux }} \
+            bash -c '
+              set -euo pipefail
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs \
+                | sh -s -- -y --profile minimal --default-toolchain stable
+              source "$HOME/.cargo/env"
+              rustup target add ${{ matrix.target }}
+              cargo build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
+            '
+
+      - name: build (native)
+        if: ${{ !matrix.cross && !matrix.manylinux }}
+        shell: bash
+        run: cargo build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
 
       - name: pack (unix)
-        if: matrix.os != 'windows-latest'
+        if: matrix.os != 'windows-2025'
         shell: bash
         run: |
           archive="theta-${{ matrix.target }}.tar.gz"
@@ -73,7 +93,7 @@ jobs:
           shasum -a 256 "$archive" > "$archive.sha256"
 
       - name: pack (windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2025'
         shell: bash
         run: |
           archive="theta-${{ matrix.target }}.zip"
@@ -89,7 +109,7 @@ jobs:
   publish:
     name: "publish github release"
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: write
