@@ -68,7 +68,7 @@ check-shear:
 # regenerate docs/reference/cli.md from clap definitions
 [group: 'docs']
 gen-cli-docs output="docs/reference/cli.md":
-    cargo run -p theta-cli --features docgen --example gen_cli_reference 2>/dev/null > {{ output }}
+    cargo run -p theta-args --features docgen --example gen_cli_reference 2>/dev/null > {{ output }}
 
 # regenerate the schema
 [group: 'docs']
@@ -78,7 +78,7 @@ gen-schema:
 # fail if docs/reference/cli.md is stale
 [group: 'check']
 check-cli-docs:
-    cargo run -p theta-cli --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md - || { echo "run: just gen-cli-docs"; exit 1; }
+    cargo run -p theta-args --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md - || { echo "run: just gen-cli-docs"; exit 1; }
 
 # build and serve docs locally
 [group: 'docs']

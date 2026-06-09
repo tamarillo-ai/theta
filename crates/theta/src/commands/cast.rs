@@ -4,8 +4,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
+use theta_args::{CastCommand, CastFromArgs, CastNamespace, CastToArgs};
 use theta_cast::{CastFile, cast_notes, caster_for, import_notes, importer_for, write_cast_output};
-use theta_cli::{CastCommand, CastFromArgs, CastNamespace, CastToArgs};
 use theta_manifest::read_manifest;
 use theta_schema::DiagLevel;
 use theta_static::{DOT_THETA_DIR, MANIFEST_FILE_NAME};
@@ -33,7 +33,7 @@ fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
     let project_dir = manifest_path.parent().unwrap();
 
     // auto-sync: ensures that .theta/ is materialized and up to date
-    super::sync::execute(theta_cli::SyncArgs { force: false }, manifest_path)?;
+    super::sync::execute(theta_args::SyncArgs { force: false }, manifest_path)?;
 
     let theta_dir = project_dir.join(DOT_THETA_DIR);
     let output_dir = args.output.unwrap_or_else(|| project_dir.to_path_buf());

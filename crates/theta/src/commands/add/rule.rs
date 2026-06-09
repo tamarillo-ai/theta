@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::AddRuleArgs;
+use theta_args::AddRuleArgs;
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::{ApplyMode, Validate};
 use theta_settings::ThetaSettings;
@@ -264,7 +264,7 @@ fn add_rule_from_git(
     );
 
     if sync {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
 
     Ok(())

@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
-use theta_cli::MigrateArgs;
+use theta_args::MigrateArgs;
 use theta_manifest::{read_document, read_manifest, schema_version};
 use theta_static::SCHEMA_VERSION;
 

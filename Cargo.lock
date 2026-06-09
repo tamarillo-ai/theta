@@ -1956,39 +1956,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
-name = "theta"
+name = "theta-args"
 version = "0.1.2"
 dependencies = [
- "anstream 0.6.21",
- "anyhow",
- "assert_fs",
  "clap",
- "fs-err",
- "indicatif",
- "owo-colors",
- "predicates",
- "schemars 0.8.22",
- "serde_json",
- "shlex",
- "tempfile",
- "theta-cast",
- "theta-cli",
- "theta-dirs",
- "theta-git",
+ "clap-markdown",
  "theta-harness",
- "theta-install",
- "theta-lock",
- "theta-manifest",
- "theta-registry",
  "theta-schema",
- "theta-settings",
  "theta-static",
- "theta-store",
- "theta-test",
- "toml",
- "toml_edit",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -2018,11 +1993,36 @@ dependencies = [
 name = "theta-cli"
 version = "0.1.2"
 dependencies = [
+ "anstream 0.6.21",
+ "anyhow",
+ "assert_fs",
  "clap",
- "clap-markdown",
+ "fs-err",
+ "indicatif",
+ "owo-colors",
+ "predicates",
+ "schemars 0.8.22",
+ "serde_json",
+ "shlex",
+ "tempfile",
+ "theta-args",
+ "theta-cast",
+ "theta-dirs",
+ "theta-git",
  "theta-harness",
+ "theta-install",
+ "theta-lock",
+ "theta-manifest",
+ "theta-registry",
  "theta-schema",
+ "theta-settings",
  "theta-static",
+ "theta-store",
+ "theta-test",
+ "toml",
+ "toml_edit",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use std::fmt::Write;
 use std::path::Path;
-use theta_cli::AddToolArgs;
+use theta_args::AddToolArgs;
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 

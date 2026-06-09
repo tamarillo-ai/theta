@@ -3,7 +3,7 @@
 #![allow(clippy::print_stdout)]
 
 use anyhow::Result;
-use theta_cli::SchemaArgs;
+use theta_args::SchemaArgs;
 use theta_schema::ThetaManifest;
 
 pub(crate) fn execute(_args: SchemaArgs) -> Result<()> {

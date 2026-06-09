@@ -10,7 +10,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
-use theta_cli::{OutputFormat, TreeArgs};
+use theta_args::{OutputFormat, TreeArgs};
 use theta_manifest::read_manifest;
 
 use super::{project_dir, require_manifest};

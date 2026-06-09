@@ -5,7 +5,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
-use theta_cli::SyncArgs;
+use theta_args::SyncArgs;
 use theta_lock::{LockedSource, read_lock};
 use theta_manifest::read_manifest;
 use theta_static::DOT_THETA_DIR;
@@ -19,7 +19,7 @@ pub(crate) fn execute(args: SyncArgs, manifest_path: &Path) -> Result<()> {
     require_manifest(manifest_path)?;
 
     if args.force {
-        super::lock::execute(theta_cli::LockArgs { force: true }, manifest_path)?;
+        super::lock::execute(theta_args::LockArgs { force: true }, manifest_path)?;
     } else {
         super::lock::ensure_locked(manifest_path)?;
     }

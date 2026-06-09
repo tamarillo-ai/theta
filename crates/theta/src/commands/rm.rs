@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::{
+use theta_args::{
     RmCommand, RmNamespace, RmRuleArgs, RmSkillArgs, RmStoreArgs, RmSubagentArgs, RmSystemArgs,
     RmToolArgs,
 };
@@ -134,7 +134,7 @@ fn rm_rule(args: RmRuleArgs, manifest_path: &Path) -> Result<()> {
     }
 
     if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
     Ok(())
 }
@@ -179,7 +179,7 @@ fn rm_system(args: RmSystemArgs, manifest_path: &Path) -> Result<()> {
     print_removed(label);
 
     if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
     Ok(())
 }
@@ -272,7 +272,7 @@ fn rm_skill(args: RmSkillArgs, manifest_path: &Path) -> Result<()> {
     print_removed(&label);
 
     if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
     Ok(())
 }
@@ -342,7 +342,7 @@ fn rm_subagent(args: RmSubagentArgs, manifest_path: &Path) -> Result<()> {
     print_removed(&label);
 
     if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
     Ok(())
 }

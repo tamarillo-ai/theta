@@ -1,7 +1,7 @@
 # CLI reference
 
 <!-- generated - do not edit by hand -->
-<!-- regenerate: cargo run -p theta-cli --features docgen --example gen_cli_reference > docs/reference/cli.md -->
+<!-- regenerate: cargo run -p theta-args --features docgen --example gen_cli_reference > docs/reference/cli.md -->
 
 # Command-Line Help for `theta`
 

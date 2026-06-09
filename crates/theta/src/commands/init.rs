@@ -6,7 +6,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::InitArgs;
+use theta_args::InitArgs;
 use theta_manifest::create_manifest;
 use theta_schema::{minimal_manifest, normalize_agent_name};
 use theta_static::MANIFEST_FILE_NAME;

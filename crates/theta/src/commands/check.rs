@@ -6,8 +6,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
+use theta_args::{CheckArgs, OutputFormat};
 use theta_cast::caster_for;
-use theta_cli::{CheckArgs, OutputFormat};
 use theta_harness::HarnessTarget;
 use theta_manifest::{collect_document_diagnostics, read_document, read_manifest, schema_version};
 use theta_schema::{DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateContent};

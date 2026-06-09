@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
 theta-cast = { version = "0.1.2", path = "crates/theta-cast" }
-theta-cli = { version = "0.1.2", path = "crates/theta-cli" }
+theta-args = { version = "0.1.2", path = "crates/theta-args" }
 theta-harness = { version = "0.1.2", path = "crates/theta-harness" }
 theta-dirs = { version = "0.1.2", path = "crates/theta-dirs" }
 theta-git = { version = "0.1.2", path = "crates/theta-git" }

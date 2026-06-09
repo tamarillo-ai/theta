@@ -106,7 +106,7 @@ jobs:
           persist-credentials: false
       - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - name: "check cli docs are up to date"
-        run: cargo run -p theta-cli --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md -
+        run: cargo run -p theta-args --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md -
 
   required:
     name: "all checks passed"

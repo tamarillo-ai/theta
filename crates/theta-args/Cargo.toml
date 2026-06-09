@@ -1,7 +1,7 @@
 [package]
-name = "theta-cli"
+name = "theta-args"
 version.workspace = true
-description = "Clap CLI definitions for theta"
+description = "Clap argument definitions for theta"
 edition = { workspace = true }
 rust-version = { workspace = true }
 repository = { workspace = true }

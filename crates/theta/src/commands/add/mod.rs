@@ -9,7 +9,7 @@ mod tool;
 use std::path::Path;
 
 use anyhow::Result;
-use theta_cli::{AddCommand, AddNamespace};
+use theta_args::{AddCommand, AddNamespace};
 use theta_settings::ThetaSettings;
 
 pub(crate) fn dispatch(

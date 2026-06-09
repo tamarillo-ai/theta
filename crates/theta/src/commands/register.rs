@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::{
+use theta_args::{
     LockArgs, RegisterAgentArgs, RegisterCommand, RegisterNamespace, RegisterRuleArgs,
     RegisterSkillArgs,
 };

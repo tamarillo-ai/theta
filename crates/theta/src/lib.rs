@@ -3,7 +3,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 
-use theta_cli::{Cli, Commands};
+use theta_args::{Cli, Commands};
 use theta_settings::{CliOverrides, ThetaSettings};
 use theta_static::MANIFEST_FILE_NAME;
 

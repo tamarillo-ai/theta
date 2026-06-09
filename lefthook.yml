@@ -10,7 +10,7 @@ pre-commit:
     - name: unused-deps
       run: cargo shear
     - name: cli-docs
-      run: cargo run -p theta-cli --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md -
+      run: cargo run -p theta-args --features docgen --example gen_cli_reference 2>/dev/null | diff -u docs/reference/cli.md -
 
 pre-push:
   parallel: true

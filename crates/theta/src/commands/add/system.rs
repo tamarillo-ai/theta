@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::AddSystemArgs;
+use theta_args::AddSystemArgs;
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 use theta_settings::ThetaSettings;

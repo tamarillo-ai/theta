@@ -5,7 +5,7 @@ use std::path::Path;
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_cli::AddSkillArgs;
+use theta_args::AddSkillArgs;
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 use theta_static::is_default_manifest;
@@ -284,7 +284,7 @@ pub(super) fn execute(args: AddSkillArgs, manifest_path: &Path) -> Result<()> {
     // sync (lock + materialize everything) unless --no-sync or non-root manifest
     // same as uv: `uv add` always syncs, `uv add --no-sync` opts out
     if wants_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_cli::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
     }
 
     Ok(())

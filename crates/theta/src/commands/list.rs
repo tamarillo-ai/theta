@@ -6,7 +6,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
-use theta_cli::{ListCommand, ListNamespace, OutputFormat};
+use theta_args::{ListCommand, ListNamespace, OutputFormat};
 use theta_manifest::read_manifest;
 use theta_schema::{Rule, ThetaManifest};
 use theta_static::{StoreEntry, StoreIndexRuleEntry};

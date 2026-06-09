@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
-use theta_cli::LockArgs;
+use theta_args::LockArgs;
 use theta_git::cache_dir;
 use theta_lock::{build_lock, is_stale, read_lock, write_lock};
 use theta_manifest::read_manifest;

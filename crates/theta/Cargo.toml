@@ -1,13 +1,14 @@
 [package]
-name = "theta"
+name = "theta-cli"
 version.workspace = true
-description = "AI agent configuration manager — the theta CLI"
+description = "Harness-agnostic agent configuration manager — reference implementation of theta-spec"
 edition = { workspace = true }
 rust-version = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }
+publish = false
 
 [lints]
 workspace = true
@@ -18,7 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 theta-cast = { workspace = true }
-theta-cli = { workspace = true }
+theta-args = { workspace = true }
 theta-dirs = { workspace = true }
 theta-harness = { workspace = true }
 theta-git = { workspace = true }
@@ -52,4 +53,5 @@ tempfile = { workspace = true }
 toml = { workspace = true }
 
 [lib]
+name = "theta"
 doctest = false
