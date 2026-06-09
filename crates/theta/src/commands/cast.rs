@@ -4,24 +4,61 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::{CastCommand, CastFromArgs, CastNamespace, CastToArgs};
+use schemars::JsonSchema;
+use serde::Serialize;
+use std::path::PathBuf;
+use theta_args::{CastCommand, CastFromArgs, CastNamespace, CastToArgs, OutputFormat};
 use theta_cast::{CastFile, cast_notes, caster_for, import_notes, importer_for, write_cast_output};
 use theta_manifest::read_manifest;
-use theta_schema::DiagLevel;
+use theta_schema::{CommandFailure, CommandOutput, DiagLevel, Diagnostic};
 use theta_static::{DOT_THETA_DIR, MANIFEST_FILE_NAME};
 
-pub(crate) fn dispatch(ns: CastNamespace, manifest_path: &Path) -> Result<()> {
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct CastToOutput {
+    pub target: String,
+    pub output_dir: PathBuf,
+    pub files_written: Vec<PathBuf>,
+}
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct CastFromOutput {
+    pub source: String,
+    pub manifest_path: PathBuf,
+    pub files_written: Vec<PathBuf>,
+    pub sources_read: Vec<PathBuf>,
+}
+
+pub(crate) fn dispatch(
+    ns: CastNamespace,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     match ns.command {
-        CastCommand::To(args) => execute_to(args, manifest_path),
-        CastCommand::From(args) => execute_from(args, manifest_path),
+        CastCommand::To(args) => execute_to(args, output_format, manifest_path),
+        CastCommand::From(args) => execute_from(args, output_format, manifest_path),
     }
 }
 
-fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
+fn execute_to(args: CastToArgs, output_format: OutputFormat, manifest_path: &Path) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     let target = args.target;
 
     if args.notes {
-        anstream::print!("{}", cast_notes(target));
+        // notes is a doc-style output. In JSON mode emit empty envelope; in
+        // human mode print to stdout as before.
+        if json {
+            CommandOutput::ok(
+                ["cast", "to"],
+                CastToOutput {
+                    target: target.as_str().to_string(),
+                    output_dir: PathBuf::new(),
+                    files_written: vec![],
+                },
+            )
+            .print_json()?;
+        } else {
+            anstream::print!("{}", cast_notes(target));
+        }
         return Ok(());
     }
 
@@ -33,7 +70,11 @@ fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
     let project_dir = manifest_path.parent().unwrap();
 
     // auto-sync: ensures that .theta/ is materialized and up to date
-    super::sync::execute(theta_args::SyncArgs { force: false }, manifest_path)?;
+    super::sync::execute(
+        theta_args::SyncArgs { force: false },
+        OutputFormat::Human,
+        manifest_path,
+    )?;
 
     let theta_dir = project_dir.join(DOT_THETA_DIR);
     let output_dir = args.output.unwrap_or_else(|| project_dir.to_path_buf());
@@ -43,18 +84,25 @@ fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
     let caster = caster_for(target);
 
     let config_diags = caster.validate_config(&manifest);
-    for d in &config_diags {
-        match d.level {
-            DiagLevel::Error => {
-                anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+    if !json {
+        for d in &config_diags {
+            match d.level {
+                DiagLevel::Error => {
+                    anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+                }
+                DiagLevel::Warn => {
+                    anstream::eprintln!(
+                        "{} {} {}",
+                        "warn".yellow().bold(),
+                        d.path.cyan(),
+                        d.message
+                    );
+                }
+                DiagLevel::Hint => {
+                    anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
+                }
+                _ => {}
             }
-            DiagLevel::Warn => {
-                anstream::eprintln!("{} {} {}", "warn".yellow().bold(), d.path.cyan(), d.message);
-            }
-            DiagLevel::Hint => {
-                anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
-            }
-            _ => {}
         }
     }
 
@@ -73,6 +121,25 @@ fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
             .filter(|p| p.exists())
             .collect();
         if !existing.is_empty() {
+            if json {
+                let diags: Vec<Diagnostic> = existing
+                    .iter()
+                    .map(|p| {
+                        Diagnostic::error("[cast.to]", format!("{} already exists", p.display()))
+                    })
+                    .collect();
+                CommandOutput::error(
+                    ["cast", "to"],
+                    CastToOutput {
+                        target: target.as_str().to_string(),
+                        output_dir: output_dir.clone(),
+                        files_written: vec![],
+                    },
+                    diags,
+                )
+                .print_json()?;
+                return Err(CommandFailure.into());
+            }
             for p in &existing {
                 anstream::eprintln!(
                     "{} {} already exists",
@@ -88,23 +155,46 @@ fn execute_to(args: CastToArgs, manifest_path: &Path) -> Result<()> {
     }
 
     let diags = caster.validate_output(&files);
-    for d in &diags {
-        match d.level {
-            DiagLevel::Error => {
-                anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+    if !json {
+        for d in &diags {
+            match d.level {
+                DiagLevel::Error => {
+                    anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+                }
+                DiagLevel::Warn => {
+                    anstream::eprintln!(
+                        "{} {} {}",
+                        "warn".yellow().bold(),
+                        d.path.cyan(),
+                        d.message
+                    );
+                }
+                DiagLevel::Hint => {
+                    anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
+                }
+                _ => {}
             }
-            DiagLevel::Warn => {
-                anstream::eprintln!("{} {} {}", "warn".yellow().bold(), d.path.cyan(), d.message);
-            }
-            DiagLevel::Hint => {
-                anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
-            }
-            _ => {}
         }
     }
 
     let written = write_cast_output(&files, &output_dir)
         .with_context(|| format!("failed to write cast output to {}", output_dir.display()))?;
+
+    if json {
+        let mut all_diags: Vec<Diagnostic> = config_diags.clone();
+        all_diags.extend(diags.clone());
+        let mut env = CommandOutput::ok(
+            ["cast", "to"],
+            CastToOutput {
+                target: target.as_str().to_string(),
+                output_dir: output_dir.clone(),
+                files_written: written,
+            },
+        );
+        env.diagnostics = all_diags;
+        env.print_json()?;
+        return Ok(());
+    }
 
     for path in &written {
         anstream::eprintln!("{} {}", "wrote".green().bold(), path.display().cyan());
@@ -192,11 +282,29 @@ fn warn_coexisting_hook_files(output_dir: &Path, files: &[CastFile]) {
     }
 }
 
-fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
+fn execute_from(
+    args: CastFromArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     let target = args.source;
 
     if args.notes {
-        anstream::print!("{}", import_notes(target));
+        if json {
+            CommandOutput::ok(
+                ["cast", "from"],
+                CastFromOutput {
+                    source: target.as_str().to_string(),
+                    manifest_path: PathBuf::new(),
+                    files_written: vec![],
+                    sources_read: vec![],
+                },
+            )
+            .print_json()?;
+        } else {
+            anstream::print!("{}", import_notes(target));
+        }
         return Ok(());
     }
 
@@ -234,18 +342,25 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
         .import(&project_dir, &import_opts)
         .with_context(|| format!("failed to import from {target}"))?;
 
-    for d in &result.diagnostics {
-        match d.level {
-            DiagLevel::Error => {
-                anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+    if !json {
+        for d in &result.diagnostics {
+            match d.level {
+                DiagLevel::Error => {
+                    anstream::eprintln!("{} {} {}", "error".red().bold(), d.path.cyan(), d.message);
+                }
+                DiagLevel::Warn => {
+                    anstream::eprintln!(
+                        "{} {} {}",
+                        "warn".yellow().bold(),
+                        d.path.cyan(),
+                        d.message
+                    );
+                }
+                DiagLevel::Hint => {
+                    anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
+                }
+                _ => {}
             }
-            DiagLevel::Warn => {
-                anstream::eprintln!("{} {} {}", "warn".yellow().bold(), d.path.cyan(), d.message);
-            }
-            DiagLevel::Hint => {
-                anstream::eprintln!("{} {} {}", "hint".blue().bold(), d.path.cyan(), d.message);
-            }
-            _ => {}
         }
     }
 
@@ -257,6 +372,26 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
             .filter(|p| p.exists())
             .collect();
         if !conflicts.is_empty() {
+            if json {
+                let diags: Vec<Diagnostic> = conflicts
+                    .iter()
+                    .map(|p| {
+                        Diagnostic::error("[cast.from]", format!("{} already exists", p.display()))
+                    })
+                    .collect();
+                CommandOutput::error(
+                    ["cast", "from"],
+                    CastFromOutput {
+                        source: target.as_str().to_string(),
+                        manifest_path: theta_toml.clone(),
+                        files_written: vec![],
+                        sources_read: vec![],
+                    },
+                    diags,
+                )
+                .print_json()?;
+                return Err(CommandFailure.into());
+            }
             for p in &conflicts {
                 anstream::eprintln!(
                     "{} {} already exists",
@@ -272,7 +407,7 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
     }
 
     // write extracted source files (system.md, rules/*.md, etc.)
-    let mut written_count = 0usize;
+    let mut files_written: Vec<PathBuf> = Vec::new();
     for (rel_path, content) in &result.extracted_files {
         let dst = project_dir.join(rel_path);
         if let Some(parent) = dst.parent() {
@@ -290,8 +425,10 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
             theta_cast::CastContent::Binary(b) => b.clone(),
         };
         fs_err::write(&dst, bytes).with_context(|| format!("failed to write {}", dst.display()))?;
-        anstream::eprintln!("{} {}", "wrote".green().bold(), dst.display().cyan());
-        written_count += 1;
+        if !json {
+            anstream::eprintln!("{} {}", "wrote".green().bold(), dst.display().cyan());
+        }
+        files_written.push(dst);
     }
 
     let toml_content = result.document.to_string();
@@ -301,8 +438,30 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
     }
     fs_err::write(&theta_toml, &toml_content)
         .with_context(|| format!("failed to write {}", theta_toml.display()))?;
-    anstream::eprintln!("{} {}", "wrote".green().bold(), theta_toml.display().cyan());
-    written_count += 1;
+    if !json {
+        anstream::eprintln!("{} {}", "wrote".green().bold(), theta_toml.display().cyan());
+    }
+    files_written.push(theta_toml.clone());
+
+    if json {
+        let sources_read: Vec<PathBuf> = result
+            .sources_read
+            .iter()
+            .map(|p| project_dir.join(p))
+            .collect();
+        let mut env = CommandOutput::ok(
+            ["cast", "from"],
+            CastFromOutput {
+                source: target.as_str().to_string(),
+                manifest_path: theta_toml.clone(),
+                files_written,
+                sources_read,
+            },
+        );
+        env.diagnostics.clone_from(&result.diagnostics);
+        env.print_json()?;
+        return Ok(());
+    }
 
     for src in &result.sources_read {
         anstream::eprintln!(
@@ -316,7 +475,7 @@ fn execute_from(args: CastFromArgs, manifest_path: &Path) -> Result<()> {
         "{} imported from {} ({} file(s) written)",
         "done".green().bold(),
         target.as_str().cyan(),
-        written_count,
+        files_written.len(),
     );
     anstream::eprintln!(
         "{} round-trip has known YAML/JSON cosmetic differences - run `theta cast from {} --notes` for details",

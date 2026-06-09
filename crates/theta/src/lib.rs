@@ -38,15 +38,17 @@ pub fn run() -> Result<()> {
     match cli.command {
         Commands::Init(args) => commands::init::execute(args, output_format, &manifest_path),
         Commands::Check(args) => commands::check::execute(args, output_format, &manifest_path),
-        Commands::Migrate(args) => commands::migrate::execute(args, &manifest_path),
-        Commands::Describe(args) => commands::describe::execute(args, &manifest_path),
-        Commands::Add(ns) => commands::add::dispatch(ns, &manifest_path, &settings),
-        Commands::Rm(ns) => commands::rm::dispatch(ns, &manifest_path),
+        Commands::Migrate(args) => commands::migrate::execute(args, output_format, &manifest_path),
+        Commands::Describe(args) => {
+            commands::describe::execute(args, output_format, &manifest_path)
+        }
+        Commands::Add(ns) => commands::add::dispatch(ns, output_format, &manifest_path, &settings),
+        Commands::Rm(ns) => commands::rm::dispatch(ns, output_format, &manifest_path),
         Commands::List(ns) => commands::list::execute(ns, output_format, &manifest_path),
-        Commands::Lock(args) => commands::lock::execute(args, &manifest_path),
-        Commands::Sync(args) => commands::sync::execute(args, &manifest_path),
-        Commands::Cast(ns) => commands::cast::dispatch(ns, &manifest_path),
-        Commands::Register(ns) => commands::register::dispatch(ns, &manifest_path),
+        Commands::Lock(args) => commands::lock::execute(args, output_format, &manifest_path),
+        Commands::Sync(args) => commands::sync::execute(args, output_format, &manifest_path),
+        Commands::Cast(ns) => commands::cast::dispatch(ns, output_format, &manifest_path),
+        Commands::Register(ns) => commands::register::dispatch(ns, output_format, &manifest_path),
         Commands::Tree(args) => commands::tree::execute(args, output_format, &manifest_path),
         Commands::Schema(args) => commands::schema::execute(args),
     }

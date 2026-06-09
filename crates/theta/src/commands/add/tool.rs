@@ -9,10 +9,13 @@ use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use std::fmt::Write;
 use std::path::Path;
-use theta_args::AddToolArgs;
+use theta_args::{AddToolArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
-use theta_schema::Validate;
+use theta_schema::{CommandOutput, Validate};
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+};
 use crate::commands::{report_diagnostics, require_manifest};
 
 struct ToolEntry {
@@ -26,8 +29,13 @@ struct ToolEntry {
     source_label: Option<String>,
 }
 
-pub(super) fn execute(args: AddToolArgs, manifest_path: &Path) -> Result<()> {
+pub(super) fn execute(
+    args: AddToolArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
+    let json = matches!(output_format, OutputFormat::Json);
 
     let entry = if theta_registry::is_registry_name(&args.name) {
         resolve_from_registry(&args)?
@@ -42,6 +50,26 @@ pub(super) fn execute(args: AddToolArgs, manifest_path: &Path) -> Result<()> {
     } else {
         "http"
     };
+
+    if json {
+        CommandOutput::ok(
+            ["add", "tool"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::Tool,
+                name: Some(entry.name.clone()),
+                source: entry.source_label.as_ref().map(|s| MutationSource {
+                    kind: MutationSourceKind::Inline,
+                    detail: s.clone(),
+                }),
+                files_written: vec![],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+        return Ok(());
+    }
+
     match &entry.source_label {
         Some(source) => anstream::eprintln!(
             "{} tool \"{}\" from {} ({})",

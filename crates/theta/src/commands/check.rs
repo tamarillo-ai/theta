@@ -1,18 +1,28 @@
 //! `theta check` — validate `theta.toml` and materialized dependencies.
 
-#![allow(clippy::print_stdout)]
-
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
+use schemars::JsonSchema;
+use serde::Serialize;
 use theta_args::{CheckArgs, OutputFormat};
 use theta_cast::caster_for;
 use theta_harness::HarnessTarget;
 use theta_manifest::{collect_document_diagnostics, read_document, read_manifest, schema_version};
-use theta_schema::{DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateContent};
+use theta_schema::{
+    CommandFailure, CommandOutput, DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateContent,
+};
 
 use crate::resolve::{check_refs, resolve_content};
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct CheckOutput {
+    pub valid: bool,
+    pub errors: usize,
+    pub warnings: usize,
+    pub hints: usize,
+}
 
 pub(crate) fn execute(
     args: CheckArgs,
@@ -73,17 +83,19 @@ fn finish_check_json(diags: &[Diagnostic]) -> Result<()> {
     let errors = diags.iter().filter(|d| d.level == DiagLevel::Error).count();
     let warnings = diags.iter().filter(|d| d.level == DiagLevel::Warn).count();
     let hints = diags.iter().filter(|d| d.level == DiagLevel::Hint).count();
-    let output = serde_json::json!({
-        "valid": errors == 0,
-        "errors": errors,
-        "warnings": warnings,
-        "hints": hints,
-        "diagnostics": diags,
-    });
-    println!("{}", serde_json::to_string_pretty(&output)?);
+    let data = CheckOutput {
+        valid: errors == 0,
+        errors,
+        warnings,
+        hints,
+    };
     if errors > 0 {
-        anyhow::bail!("validation failed with {errors} error(s)");
+        CommandOutput::error(["check"], data, diags.to_vec()).print_json()?;
+        return Err(CommandFailure.into());
     }
+    let mut env = CommandOutput::ok(["check"], data);
+    env.diagnostics = diags.to_vec();
+    env.print_json()?;
     Ok(())
 }
 

@@ -6,11 +6,29 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
+use schemars::JsonSchema;
+use serde::Serialize;
 use theta_args::{ListCommand, ListNamespace, OutputFormat};
 use theta_manifest::read_manifest;
-use theta_schema::{Rule, ThetaManifest};
+use theta_schema::{CommandOutput, Rule, ThetaManifest};
 use theta_static::{StoreEntry, StoreIndexRuleEntry};
 use theta_store::StoreHandle;
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub(crate) enum ListKind {
+    Rules,
+    Tools,
+    Skills,
+    Subagents,
+    Store,
+}
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct ListOutput {
+    pub kind: ListKind,
+    pub entries: serde_json::Value,
+}
 
 pub(crate) fn execute(
     ns: ListNamespace,
@@ -47,33 +65,50 @@ pub(crate) fn execute(
 }
 
 fn list_json(command: &ListCommand, manifest: &ThetaManifest) -> Result<()> {
-    let value = match command {
-        ListCommand::Rules => {
-            let rules = manifest
+    let (kind, entries) = match command {
+        ListCommand::Rules => (
+            ListKind::Rules,
+            manifest
                 .instructions
                 .as_ref()
-                .and_then(|i| i.rules.as_ref());
-            match rules {
-                Some(r) => serde_json::to_value(r)?,
-                None => serde_json::json!({}),
-            }
-        }
-        ListCommand::Tools => match &manifest.tools {
-            Some(t) => serde_json::to_value(t)?,
-            None => serde_json::json!({}),
-        },
-        ListCommand::Skills => match &manifest.skills {
-            Some(s) => serde_json::to_value(s)?,
-            None => serde_json::json!({}),
-        },
-        ListCommand::Subagents => match &manifest.subagents {
-            Some(s) => serde_json::to_value(s)?,
-            None => serde_json::json!([]),
-        },
+                .and_then(|i| i.rules.as_ref())
+                .map_or_else(|| Ok(serde_json::json!({})), serde_json::to_value)?,
+        ),
+        ListCommand::Tools => (
+            ListKind::Tools,
+            manifest
+                .tools
+                .as_ref()
+                .map_or_else(|| Ok(serde_json::json!({})), serde_json::to_value)?,
+        ),
+        ListCommand::Skills => (
+            ListKind::Skills,
+            manifest
+                .skills
+                .as_ref()
+                .map_or_else(|| Ok(serde_json::json!({})), serde_json::to_value)?,
+        ),
+        ListCommand::Subagents => (
+            ListKind::Subagents,
+            manifest
+                .subagents
+                .as_ref()
+                .map_or_else(|| Ok(serde_json::json!([])), serde_json::to_value)?,
+        ),
         ListCommand::Store => return list_store_json(),
     };
-    println!("{}", serde_json::to_string_pretty(&value)?);
+    CommandOutput::ok(["list", kind_verb(&kind)], ListOutput { kind, entries }).print_json()?;
     Ok(())
+}
+
+fn kind_verb(kind: &ListKind) -> &'static str {
+    match kind {
+        ListKind::Rules => "rules",
+        ListKind::Tools => "tools",
+        ListKind::Skills => "skills",
+        ListKind::Subagents => "subagents",
+        ListKind::Store => "store",
+    }
 }
 
 fn list_store_json() -> Result<()> {
@@ -112,12 +147,18 @@ fn list_store_json() -> Result<()> {
         .map(|(k, v)| (k.clone(), to_rule_entry(v)))
         .collect();
 
-    let output = serde_json::json!({
-        "agents": agents,
-        "skills": skills,
-        "rules": rules,
-    });
-    println!("{}", serde_json::to_string_pretty(&output)?);
+    CommandOutput::ok(
+        ["list", "store"],
+        ListOutput {
+            kind: ListKind::Store,
+            entries: serde_json::json!({
+                "agents": agents,
+                "skills": skills,
+                "rules": rules,
+            }),
+        },
+    )
+    .print_json()?;
     Ok(())
 }
 

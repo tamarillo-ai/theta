@@ -4,19 +4,24 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddRuleArgs;
+use theta_args::{AddRuleArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
-use theta_schema::{ApplyMode, Validate};
+use theta_schema::{ApplyMode, CommandOutput, Validate};
 use theta_settings::ThetaSettings;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
 pub(super) fn execute(
     args: AddRuleArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     settings: &ThetaSettings,
 ) -> Result<()> {
     require_manifest(manifest_path)?;
+    let json = matches!(output_format, OutputFormat::Json);
 
     if !theta_schema::is_valid_rule_name(&args.name) {
         bail!(
@@ -33,7 +38,7 @@ pub(super) fn execute(
         } else {
             store_name_arg.as_str()
         };
-        return add_rule_from_store(&args.name, store_name, manifest_path);
+        return add_rule_from_store(&args.name, store_name, output_format, manifest_path);
     }
 
     // --git: write a git ref, no file scaffolding
@@ -48,6 +53,7 @@ pub(super) fn execute(
             args.rev.as_deref(),
             file,
             args.sync,
+            output_format,
             manifest_path,
         );
     }
@@ -124,7 +130,28 @@ pub(super) fn execute(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if args.path.is_some() {
+    if json {
+        let files_written = if scaffolded {
+            vec![rule_path.clone()]
+        } else {
+            vec![]
+        };
+        CommandOutput::ok(
+            ["add", "rule"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::Rule,
+                name: Some(args.name.clone()),
+                source: Some(MutationSource {
+                    kind: MutationSourceKind::Local,
+                    detail: rule_path_rel.clone(),
+                }),
+                files_written,
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else if args.path.is_some() {
         anstream::eprintln!(
             "{} rule \"{}\" from {}",
             "registered".green().bold(),
@@ -167,7 +194,13 @@ fn scaffold_rule_file(args: &AddRuleArgs, rule_path: &Path) -> Result<bool> {
 }
 
 // write `[instructions.rules.<key>] src = { system = "<store_name>" }` to theta.toml
-fn add_rule_from_store(key: &str, store_name: &str, manifest_path: &Path) -> Result<()> {
+fn add_rule_from_store(
+    key: &str,
+    store_name: &str,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     // verify the store entry exists
     let store = theta_store::StoreHandle::open()?;
     if store.rule_path(store_name).is_none() {
@@ -198,7 +231,23 @@ fn add_rule_from_store(key: &str, store_name: &str, manifest_path: &Path) -> Res
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if key == store_name {
+    if json {
+        CommandOutput::ok(
+            ["add", "rule"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::Rule,
+                name: Some(key.to_string()),
+                source: Some(MutationSource {
+                    kind: MutationSourceKind::Store,
+                    detail: store_name.to_string(),
+                }),
+                files_written: vec![],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else if key == store_name {
         anstream::eprintln!(
             "{} rule \"{}\" from system store",
             "registered".green().bold(),
@@ -223,8 +272,10 @@ fn add_rule_from_git(
     rev: Option<&str>,
     file: &str,
     sync: bool,
+    output_format: OutputFormat,
     manifest_path: &Path,
 ) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     let mut doc = read_document(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
 
@@ -257,14 +308,36 @@ fn add_rule_from_git(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    anstream::eprintln!(
-        "{} rule \"{}\" from git",
-        "registered".green().bold(),
-        name.cyan(),
-    );
+    if json {
+        CommandOutput::ok(
+            ["add", "rule"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::Rule,
+                name: Some(name.to_string()),
+                source: Some(MutationSource {
+                    kind: MutationSourceKind::Git,
+                    detail: git_url.to_string(),
+                }),
+                files_written: vec![],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else {
+        anstream::eprintln!(
+            "{} rule \"{}\" from git",
+            "registered".green().bold(),
+            name.cyan(),
+        );
+    }
 
     if sync {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(
+            theta_args::SyncArgs { force: true },
+            OutputFormat::Human,
+            manifest_path,
+        )?;
     }
 
     Ok(())

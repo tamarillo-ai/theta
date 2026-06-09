@@ -4,10 +4,13 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddSubagentArgs;
+use theta_args::{AddSubagentArgs, OutputFormat};
 use theta_manifest::{parse_manifest, read_document, write_document};
-use theta_schema::Validate;
+use theta_schema::{CommandOutput, Validate};
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
 enum SubagentIntent {
@@ -37,8 +40,13 @@ fn resolve_intent(args: &AddSubagentArgs) -> SubagentIntent {
     }
 }
 
-pub(super) fn execute(args: AddSubagentArgs, manifest_path: &Path) -> Result<()> {
+pub(super) fn execute(
+    args: AddSubagentArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
+    let json = matches!(output_format, OutputFormat::Json);
     let project_dir = project_dir(manifest_path)?;
     let intent = resolve_intent(&args);
 
@@ -80,14 +88,49 @@ pub(super) fn execute(args: AddSubagentArgs, manifest_path: &Path) -> Result<()>
         SubagentIntent::RegisterRef { .. } => "ref",
         _ => "inline",
     };
-    anstream::eprintln!(
-        "{} subagent \"{}\" ({})",
-        "registered".green().bold(),
-        args.name.cyan(),
-        mode_label,
-    );
-    if let Some(path) = scaffolded {
-        anstream::eprintln!("  {} {}", "created".green().bold(), path.display(),);
+
+    if json {
+        let source = match &intent {
+            SubagentIntent::RegisterRef { agent_ref } => Some(MutationSource {
+                kind: MutationSourceKind::Local,
+                detail: agent_ref.display().to_string(),
+            }),
+            SubagentIntent::RegisterExisting { prompt_path } => Some(MutationSource {
+                kind: MutationSourceKind::Local,
+                detail: prompt_path.display().to_string(),
+            }),
+            SubagentIntent::CreateAndRegister => Some(MutationSource {
+                kind: MutationSourceKind::Local,
+                detail: mode_label.to_string(),
+            }),
+            SubagentIntent::DescriptionOnly => Some(MutationSource {
+                kind: MutationSourceKind::Description,
+                detail: "description-only".to_string(),
+            }),
+        };
+        let files_written = scaffolded.clone().map(|p| vec![p]).unwrap_or_default();
+        CommandOutput::ok(
+            ["add", "subagent"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::Subagent,
+                name: Some(args.name.clone()),
+                source,
+                files_written,
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else {
+        anstream::eprintln!(
+            "{} subagent \"{}\" ({})",
+            "registered".green().bold(),
+            args.name.cyan(),
+            mode_label,
+        );
+        if let Some(path) = scaffolded {
+            anstream::eprintln!("  {} {}", "created".green().bold(), path.display(),);
+        }
     }
 
     Ok(())

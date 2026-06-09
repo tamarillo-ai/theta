@@ -5,24 +5,29 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use theta_args::{
-    LockArgs, RegisterAgentArgs, RegisterCommand, RegisterNamespace, RegisterRuleArgs,
-    RegisterSkillArgs,
+    LockArgs, OutputFormat, RegisterAgentArgs, RegisterCommand, RegisterNamespace,
+    RegisterRuleArgs, RegisterSkillArgs,
 };
 use theta_manifest::read_manifest;
-use theta_schema::{LocalOrGitRef, SourceRef};
+use theta_schema::{CommandOutput, LocalOrGitRef, SourceRef};
 use theta_store::StoreHandle;
 
+use super::output::{EntityKind, MutationKind, MutationOutput};
 use crate::skill_resolve::{
     ResolvedSkill, fetch_git_checkout, parse_github_ref, read_skill_description,
 };
 
-pub(crate) fn dispatch(ns: RegisterNamespace, manifest_path: &Path) -> Result<()> {
+pub(crate) fn dispatch(
+    ns: RegisterNamespace,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     let store = StoreHandle::open()?;
 
     match ns.command {
-        RegisterCommand::Skill(args) => register_skill(args, manifest_path, &store),
-        RegisterCommand::Rule(args) => register_rule(args, manifest_path, &store),
-        RegisterCommand::Agent(args) => register_agent(args, manifest_path, &store),
+        RegisterCommand::Skill(args) => register_skill(args, output_format, manifest_path, &store),
+        RegisterCommand::Rule(args) => register_rule(args, output_format, manifest_path, &store),
+        RegisterCommand::Agent(args) => register_agent(args, output_format, manifest_path, &store),
     }
 }
 
@@ -134,9 +139,11 @@ fn resolve_standalone_skill(args: &RegisterSkillArgs) -> Result<ResolvedSkill> {
 
 fn register_skill(
     args: RegisterSkillArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     // dispatch: explicit source flags ---> standalone mode
     //           bare name (no /) ---> manifest mode
     //           name_or_ref with / ---> github shorthand (standalone)
@@ -159,16 +166,37 @@ fn register_skill(
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} skill '{}' --> {}",
-        "registered".green().bold(),
-        resolved.name.cyan(),
-        dest.display()
-    );
+    if json {
+        CommandOutput::ok(
+            ["register", "skill"],
+            MutationOutput {
+                kind: MutationKind::Register,
+                entity: EntityKind::Skill,
+                name: Some(resolved.name.clone()),
+                source: None,
+                files_written: vec![dest],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else {
+        anstream::eprintln!(
+            "{} skill '{}' --> {}",
+            "registered".green().bold(),
+            resolved.name.cyan(),
+            dest.display()
+        );
+    }
     Ok(())
 }
 
-fn register_rule(args: RegisterRuleArgs, manifest_path: &Path, store: &StoreHandle) -> Result<()> {
+fn register_rule(
+    args: RegisterRuleArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+    store: &StoreHandle,
+) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     super::require_manifest(manifest_path)?;
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -210,20 +238,37 @@ fn register_rule(args: RegisterRuleArgs, manifest_path: &Path, store: &StoreHand
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} rule '{}' --> {}",
-        "registered".green().bold(),
-        args.name.cyan(),
-        dest.display()
-    );
+    if json {
+        CommandOutput::ok(
+            ["register", "rule"],
+            MutationOutput {
+                kind: MutationKind::Register,
+                entity: EntityKind::Rule,
+                name: Some(args.name.clone()),
+                source: None,
+                files_written: vec![dest],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else {
+        anstream::eprintln!(
+            "{} rule '{}' --> {}",
+            "registered".green().bold(),
+            args.name.cyan(),
+            dest.display()
+        );
+    }
     Ok(())
 }
 
 fn register_agent(
     args: RegisterAgentArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
     super::require_manifest(manifest_path)?;
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -233,9 +278,12 @@ fn register_agent(
 
     // optionally lock first
     if !args.no_lock {
-        super::lock::execute(LockArgs { force: false }, manifest_path).with_context(
-            || "theta lock failed before registration - fix errors above and retry",
-        )?;
+        super::lock::execute(
+            LockArgs { force: false },
+            OutputFormat::Human,
+            manifest_path,
+        )
+        .with_context(|| "theta lock failed before registration - fix errors above and retry")?;
     }
 
     let dest = store.register_agent(
@@ -246,11 +294,26 @@ fn register_agent(
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} agent '{}' --> {}",
-        "registered".green().bold(),
-        agent_name.cyan(),
-        dest.display()
-    );
+    if json {
+        CommandOutput::ok(
+            ["register", "agent"],
+            MutationOutput {
+                kind: MutationKind::Register,
+                entity: EntityKind::Agent,
+                name: Some(agent_name.to_string()),
+                source: None,
+                files_written: vec![dest],
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else {
+        anstream::eprintln!(
+            "{} agent '{}' --> {}",
+            "registered".green().bold(),
+            agent_name.cyan(),
+            dest.display()
+        );
+    }
     Ok(())
 }

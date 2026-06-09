@@ -4,19 +4,24 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddSystemArgs;
+use theta_args::{AddSystemArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
-use theta_schema::Validate;
+use theta_schema::{CommandOutput, Validate};
 use theta_settings::ThetaSettings;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
 pub(super) fn execute(
     args: AddSystemArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     settings: &ThetaSettings,
 ) -> Result<()> {
     require_manifest(manifest_path)?;
+    let json = matches!(output_format, OutputFormat::Json);
 
     let project_dir = project_dir(manifest_path)?;
 
@@ -71,7 +76,28 @@ pub(super) fn execute(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if args.path.is_some() {
+    if json {
+        let files_written = if scaffolded {
+            vec![system_path.clone()]
+        } else {
+            vec![]
+        };
+        CommandOutput::ok(
+            ["add", "system"],
+            MutationOutput {
+                kind: MutationKind::Add,
+                entity: EntityKind::System,
+                name: None,
+                source: Some(MutationSource {
+                    kind: MutationSourceKind::Local,
+                    detail: system_path_rel.clone(),
+                }),
+                files_written,
+                files_deleted: vec![],
+            },
+        )
+        .print_json()?;
+    } else if args.path.is_some() {
         anstream::eprintln!(
             "{} system prompt from {}",
             "registered".green().bold(),

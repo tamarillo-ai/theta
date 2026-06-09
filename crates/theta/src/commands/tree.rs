@@ -3,17 +3,30 @@
 //! Currently shows the subagent graph. Designed to be extensible for
 //! skill dependencies when those exist.
 
-#![allow(clippy::print_stdout)]
-
 use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
+use schemars::JsonSchema;
+use serde::Serialize;
 use theta_args::{OutputFormat, TreeArgs};
 use theta_manifest::read_manifest;
+use theta_schema::{CommandOutput, Diagnostic};
 
 use super::{project_dir, require_manifest};
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct TreeNode {
+    pub name: String,
+    pub mode: Option<String>,
+    pub children: Vec<TreeNode>,
+}
+
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct TreeOutput {
+    pub tree: TreeNode,
+}
 
 pub(crate) fn execute(
     _args: TreeArgs,
@@ -48,13 +61,15 @@ pub(crate) fn execute(
     }
 
     if matches!(output_format, OutputFormat::Json) {
-        let tree = build_json_tree(&manifest.agent.name, &edges);
-        let warnings: Vec<&str> = graph.warnings.iter().map(|w| w.message.as_str()).collect();
-        let output = serde_json::json!({
-            "tree": tree,
-            "warnings": warnings,
-        });
-        println!("{}", serde_json::to_string_pretty(&output)?);
+        let tree = build_tree(&manifest.agent.name, None, &edges);
+        let diagnostics: Vec<Diagnostic> = graph
+            .warnings
+            .iter()
+            .map(|w| Diagnostic::warn("[subagents]", w.message.clone()))
+            .collect();
+        let mut env = CommandOutput::ok(["tree"], TreeOutput { tree });
+        env.diagnostics = diagnostics;
+        env.print_json()?;
         return Ok(());
     }
 
@@ -72,24 +87,25 @@ pub(crate) fn execute(
     Ok(())
 }
 
-fn build_json_tree(name: &str, edges: &BTreeMap<String, Vec<(String, &str)>>) -> serde_json::Value {
-    let children: Vec<serde_json::Value> = edges
+fn build_tree(
+    name: &str,
+    mode: Option<&str>,
+    edges: &BTreeMap<String, Vec<(String, &str)>>,
+) -> TreeNode {
+    let children = edges
         .get(name)
         .map(|kids| {
             kids.iter()
-                .map(|(child_name, mode)| {
-                    let mut node = build_json_tree(child_name, edges);
-                    node["mode"] = serde_json::Value::String(mode.to_string());
-                    node
-                })
+                .map(|(child_name, child_mode)| build_tree(child_name, Some(child_mode), edges))
                 .collect()
         })
         .unwrap_or_default();
 
-    serde_json::json!({
-        "name": name,
-        "children": children,
-    })
+    TreeNode {
+        name: name.to_string(),
+        mode: mode.map(ToString::to_string),
+        children,
+    }
 }
 
 fn print_children(parent: &str, edges: &BTreeMap<String, Vec<(String, &str)>>, prefix: &str) {
