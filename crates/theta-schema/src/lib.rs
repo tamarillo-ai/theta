@@ -10,7 +10,7 @@ mod validate_content;
 mod validate_fields;
 use std::fmt::Write;
 
-pub use command_output::{CommandOutput, CommandStatus};
+pub use command_output::{CommandFailure, CommandOutput, CommandStatus};
 pub use resolved::{ResolutionStatus, ResolvedRefKey, ResolvedRefs};
 
 /// Validate a rule name: either simple kebab (`safety`) or path-qualified (`backend/typescript`).

@@ -36,7 +36,7 @@ pub fn run() -> Result<()> {
     let output_format = cli.global.output_format;
 
     match cli.command {
-        Commands::Init(args) => commands::init::execute(args, &manifest_path),
+        Commands::Init(args) => commands::init::execute(args, output_format, &manifest_path),
         Commands::Check(args) => commands::check::execute(args, output_format, &manifest_path),
         Commands::Migrate(args) => commands::migrate::execute(args, &manifest_path),
         Commands::Describe(args) => commands::describe::execute(args, &manifest_path),

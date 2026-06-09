@@ -98,7 +98,33 @@ where
             data,
         }
     }
+
+    /// Serialize the envelope to pretty JSON and print it to stdout, followed
+    /// by a newline. The single place every verb routes its JSON output
+    /// through.
+    pub fn print_json(&self) -> serde_json::Result<()> {
+        let s = serde_json::to_string_pretty(self)?;
+        #[allow(clippy::print_stdout)]
+        {
+            println!("{s}");
+        }
+        Ok(())
+    }
 }
+
+/// Marker error returned by a verb after it has already emitted a JSON error
+/// envelope to stdout. The CLI entry point recognizes this and produces a
+/// non-zero exit code without printing the human-readable `error: ...` banner.
+#[derive(Debug)]
+pub struct CommandFailure;
+
+impl std::fmt::Display for CommandFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("command failed (json envelope already emitted)")
+    }
+}
+
+impl std::error::Error for CommandFailure {}
 
 #[cfg(test)]
 mod tests {
