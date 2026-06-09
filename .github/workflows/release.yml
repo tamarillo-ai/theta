@@ -44,9 +44,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+      - name: install rust toolchain
+        shell: bash
+        run: |
+          rustup set profile minimal
+          rustup default stable
+          rustup target add ${{ matrix.target }}
 
       - name: install cross
         if: matrix.cross
@@ -96,12 +99,20 @@ jobs:
           pattern: artifacts-*
           merge-multiple: true
 
-      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
-        with:
-          files: |
-            theta-*.tar.gz
-            theta-*.tar.gz.sha256
-            theta-*.zip
-            theta-*.zip.sha256
-          generate_release_notes: true
-          fail_on_unmatched_files: true
+      - name: create github release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=( theta-*.tar.gz theta-*.tar.gz.sha256 theta-*.zip theta-*.zip.sha256 )
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "no release artifacts found" >&2
+            exit 1
+          fi
+          gh release create "$TAG" \
+            --repo "${{ github.repository }}" \
+            --title "$TAG" \
+            --generate-notes \
+            "${files[@]}"
