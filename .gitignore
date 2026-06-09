@@ -34,3 +34,4 @@ site/
 # tmp helpers
 tmp_**/*⏎     
 .DS_Store
+.env
