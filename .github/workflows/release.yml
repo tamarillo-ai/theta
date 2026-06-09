@@ -69,12 +69,13 @@ jobs:
           docker run --rm \
             -v "$PWD:/work" -w /work \
             -e CARGO_HOME=/work/.cargo \
+            -e RUSTUP_HOME=/work/.rustup \
             ${{ matrix.manylinux }} \
             bash -c '
               set -euo pipefail
               curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs \
-                | sh -s -- -y --profile minimal --default-toolchain stable
-              source "$HOME/.cargo/env"
+                | sh -s -- -y --profile minimal --default-toolchain stable --no-modify-path
+              export PATH="/work/.cargo/bin:$PATH"
               rustup target add ${{ matrix.target }}
               cargo build --release --locked --target ${{ matrix.target }} -p theta-cli --bin theta
             '
