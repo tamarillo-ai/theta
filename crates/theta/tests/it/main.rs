@@ -16,6 +16,7 @@ mod init;
 mod list;
 mod lock;
 mod migrate;
+mod output_envelope;
 mod register;
 mod rm;
 mod schema;
