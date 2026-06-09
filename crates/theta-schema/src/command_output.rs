@@ -66,7 +66,6 @@ impl<T> CommandOutput<T>
 where
     T: Serialize + JsonSchema,
 {
-    /// Build an `Ok` envelope with no diagnostics.
     pub fn ok(verb: impl IntoIterator<Item = impl Into<String>>, data: T) -> Self {
         Self {
             verb: verb.into_iter().map(Into::into).collect(),
@@ -76,7 +75,6 @@ where
         }
     }
 
-    /// Build a `NoOp` envelope with no diagnostics.
     pub fn no_op(verb: impl IntoIterator<Item = impl Into<String>>, data: T) -> Self {
         Self {
             verb: verb.into_iter().map(Into::into).collect(),

@@ -70,6 +70,10 @@ pub struct GlobalArgs {
     /// Override the rules subdirectory (default: "rules")
     #[arg(long, global = true, env = "THETA_RULES_DIR")]
     pub rules_dir: Option<PathBuf>,
+
+    /// Output format for machine-readable verbs
+    #[arg(long, global = true, value_enum, default_value_t = OutputFormat::Human)]
+    pub output_format: OutputFormat,
 }
 
 #[derive(Debug, Subcommand)]
@@ -139,10 +143,6 @@ pub struct CheckArgs {
     /// Allow unresolved remote instruction refs as warnings
     #[arg(long, conflicts_with = "schema_only")]
     pub skip_materialization: bool,
-
-    /// Output format
-    #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
-    pub output_format: OutputFormat,
 }
 
 #[derive(Debug, clap::Args)]
@@ -453,10 +453,6 @@ pub struct CastFromArgs {
 pub struct ListNamespace {
     #[command(subcommand)]
     pub command: ListCommand,
-
-    /// Output format
-    #[arg(long, global = true, value_enum, default_value_t = OutputFormat::Human)]
-    pub output_format: OutputFormat,
 }
 
 #[derive(Debug, Subcommand)]
@@ -488,11 +484,7 @@ pub struct SyncArgs {
 }
 
 #[derive(Debug, clap::Args)]
-pub struct TreeArgs {
-    /// Output format
-    #[arg(long, value_enum, default_value_t = OutputFormat::Human)]
-    pub output_format: OutputFormat,
-}
+pub struct TreeArgs {}
 
 #[derive(Debug, clap::Args)]
 pub struct SchemaArgs {

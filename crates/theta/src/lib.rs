@@ -33,20 +33,21 @@ pub fn run() -> Result<()> {
         rules_dir: cli.global.rules_dir,
     };
     let settings = ThetaSettings::resolve(&overrides);
+    let output_format = cli.global.output_format;
 
     match cli.command {
         Commands::Init(args) => commands::init::execute(args, &manifest_path),
-        Commands::Check(args) => commands::check::execute(args, &manifest_path),
+        Commands::Check(args) => commands::check::execute(args, output_format, &manifest_path),
         Commands::Migrate(args) => commands::migrate::execute(args, &manifest_path),
         Commands::Describe(args) => commands::describe::execute(args, &manifest_path),
         Commands::Add(ns) => commands::add::dispatch(ns, &manifest_path, &settings),
         Commands::Rm(ns) => commands::rm::dispatch(ns, &manifest_path),
-        Commands::List(ns) => commands::list::execute(ns, &manifest_path),
+        Commands::List(ns) => commands::list::execute(ns, output_format, &manifest_path),
         Commands::Lock(args) => commands::lock::execute(args, &manifest_path),
         Commands::Sync(args) => commands::sync::execute(args, &manifest_path),
         Commands::Cast(ns) => commands::cast::dispatch(ns, &manifest_path),
         Commands::Register(ns) => commands::register::dispatch(ns, &manifest_path),
-        Commands::Tree(args) => commands::tree::execute(args, &manifest_path),
+        Commands::Tree(args) => commands::tree::execute(args, output_format, &manifest_path),
         Commands::Schema(args) => commands::schema::execute(args),
     }
 }

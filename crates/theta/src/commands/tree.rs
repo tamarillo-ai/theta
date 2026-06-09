@@ -15,7 +15,11 @@ use theta_manifest::read_manifest;
 
 use super::{project_dir, require_manifest};
 
-pub(crate) fn execute(args: TreeArgs, manifest_path: &Path) -> Result<()> {
+pub(crate) fn execute(
+    _args: TreeArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let manifest = read_manifest(manifest_path)
@@ -43,7 +47,7 @@ pub(crate) fn execute(args: TreeArgs, manifest_path: &Path) -> Result<()> {
         }
     }
 
-    if matches!(args.output_format, OutputFormat::Json) {
+    if matches!(output_format, OutputFormat::Json) {
         let tree = build_json_tree(&manifest.agent.name, &edges);
         let warnings: Vec<&str> = graph.warnings.iter().map(|w| w.message.as_str()).collect();
         let output = serde_json::json!({

@@ -12,8 +12,12 @@ use theta_schema::{Rule, ThetaManifest};
 use theta_static::{StoreEntry, StoreIndexRuleEntry};
 use theta_store::StoreHandle;
 
-pub(crate) fn execute(ns: ListNamespace, manifest_path: &Path) -> Result<()> {
-    let json = matches!(ns.output_format, OutputFormat::Json);
+pub(crate) fn execute(
+    ns: ListNamespace,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
+    let json = matches!(output_format, OutputFormat::Json);
 
     // store listing does not need a manifest
     if let ListCommand::Store = ns.command {

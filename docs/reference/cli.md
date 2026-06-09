@@ -71,6 +71,16 @@ manage agent configurations defined by theta-spec
 * `--manifest <MANIFEST>` — Path to a specific theta.toml file
 * `--instructions-dir <INSTRUCTIONS_DIR>` — Override the instructions directory (default: "instructions")
 * `--rules-dir <RULES_DIR>` — Override the rules subdirectory (default: "rules")
+* `--output-format <OUTPUT_FORMAT>` — Output format for machine-readable verbs
+
+  Default value: `human`
+
+  Possible values:
+  - `human`:
+    Human-readable colored output (default)
+  - `json`:
+    Machine-readable JSON
+
 
 
 
@@ -98,16 +108,6 @@ Validate theta.toml and materialized dependencies
 
 * `--schema-only` — Only validate theta.toml against the JSON Schema
 * `--skip-materialization` — Allow unresolved remote instruction refs as warnings
-* `--output-format <OUTPUT_FORMAT>` — Output format
-
-  Default value: `human`
-
-  Possible values:
-  - `human`:
-    Human-readable colored output (default)
-  - `json`:
-    Machine-readable JSON
-
 
 
 
@@ -369,7 +369,7 @@ Unregister a resource from the system store
 
 List rules, tools, skills, or subagents
 
-**Usage:** `theta list [OPTIONS] <COMMAND>`
+**Usage:** `theta list <COMMAND>`
 
 ###### **Subcommands:**
 
@@ -378,19 +378,6 @@ List rules, tools, skills, or subagents
 * `skills` — List registered skills
 * `subagents` — List registered subagents
 * `store` — List contents of the system store
-
-###### **Options:**
-
-* `--output-format <OUTPUT_FORMAT>` — Output format
-
-  Default value: `human`
-
-  Possible values:
-  - `human`:
-    Human-readable colored output (default)
-  - `json`:
-    Machine-readable JSON
-
 
 
 
@@ -582,20 +569,7 @@ Register this agent into the system store
 
 Print the subagent dependency tree
 
-**Usage:** `theta tree [OPTIONS]`
-
-###### **Options:**
-
-* `--output-format <OUTPUT_FORMAT>` — Output format
-
-  Default value: `human`
-
-  Possible values:
-  - `human`:
-    Human-readable colored output (default)
-  - `json`:
-    Machine-readable JSON
-
+**Usage:** `theta tree`
 
 
 

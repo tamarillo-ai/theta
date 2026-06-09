@@ -14,11 +14,15 @@ use theta_schema::{DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateConte
 
 use crate::resolve::{check_refs, resolve_content};
 
-pub(crate) fn execute(args: CheckArgs, manifest_path: &Path) -> Result<()> {
+pub(crate) fn execute(
+    args: CheckArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     super::require_manifest(manifest_path)?;
     let manifest_label = manifest_label(manifest_path);
     let strict_materialization = !args.skip_materialization;
-    let json = matches!(args.output_format, OutputFormat::Json);
+    let json = matches!(output_format, OutputFormat::Json);
 
     let doc = read_document(manifest_path)
         .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
