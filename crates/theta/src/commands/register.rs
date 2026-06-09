@@ -4,15 +4,16 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
+use std::path::PathBuf;
 use theta_args::{
     LockArgs, OutputFormat, RegisterAgentArgs, RegisterCommand, RegisterNamespace,
     RegisterRuleArgs, RegisterSkillArgs,
 };
 use theta_manifest::read_manifest;
-use theta_schema::{CommandOutput, LocalOrGitRef, SourceRef};
+use theta_schema::{LocalOrGitRef, SourceRef};
 use theta_store::StoreHandle;
 
-use super::output::{EntityKind, MutationKind, MutationOutput};
+use super::output::{EntityKind, MutationKind, MutationOutput, present};
 use crate::skill_resolve::{
     ResolvedSkill, fetch_git_checkout, parse_github_ref, read_skill_description,
 };
@@ -29,6 +30,47 @@ pub(crate) fn dispatch(
         RegisterCommand::Rule(args) => register_rule(args, output_format, manifest_path, &store),
         RegisterCommand::Agent(args) => register_agent(args, output_format, manifest_path, &store),
     }
+}
+
+/// Wrap a `register` outcome in the canonical envelope. Every register
+/// variant produces "registered <kind> '<name>' --> <dest>".
+fn present_register(
+    verb_tail: &str,
+    output_format: OutputFormat,
+    entity: EntityKind,
+    name: String,
+    dest: PathBuf,
+) -> Result<()> {
+    let label_kind = match entity {
+        EntityKind::Skill => "skill",
+        EntityKind::Rule => "rule",
+        EntityKind::Agent => "agent",
+        _ => "entry",
+    };
+    let name_for_render = name.clone();
+    let dest_for_render = dest.clone();
+    present(
+        &["register", verb_tail],
+        output_format,
+        MutationOutput {
+            kind: MutationKind::Register,
+            entity,
+            name: Some(name),
+            source: None,
+            files_written: vec![dest],
+            files_deleted: vec![],
+        },
+        vec![],
+        move |_| {
+            anstream::eprintln!(
+                "{} {} '{}' --> {}",
+                "registered".green().bold(),
+                label_kind,
+                name_for_render.cyan(),
+                dest_for_render.display()
+            );
+        },
+    )
 }
 
 fn resolve_manifest_skill(name: &str, manifest_path: &Path) -> Result<ResolvedSkill> {
@@ -143,7 +185,6 @@ fn register_skill(
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
     // dispatch: explicit source flags ---> standalone mode
     //           bare name (no /) ---> manifest mode
     //           name_or_ref with / ---> github shorthand (standalone)
@@ -166,28 +207,13 @@ fn register_skill(
         args.force,
     )?;
 
-    if json {
-        CommandOutput::ok(
-            ["register", "skill"],
-            MutationOutput {
-                kind: MutationKind::Register,
-                entity: EntityKind::Skill,
-                name: Some(resolved.name.clone()),
-                source: None,
-                files_written: vec![dest],
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else {
-        anstream::eprintln!(
-            "{} skill '{}' --> {}",
-            "registered".green().bold(),
-            resolved.name.cyan(),
-            dest.display()
-        );
-    }
-    Ok(())
+    present_register(
+        "skill",
+        output_format,
+        EntityKind::Skill,
+        resolved.name,
+        dest,
+    )
 }
 
 fn register_rule(
@@ -196,7 +222,6 @@ fn register_rule(
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
     super::require_manifest(manifest_path)?;
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -238,28 +263,7 @@ fn register_rule(
         args.force,
     )?;
 
-    if json {
-        CommandOutput::ok(
-            ["register", "rule"],
-            MutationOutput {
-                kind: MutationKind::Register,
-                entity: EntityKind::Rule,
-                name: Some(args.name.clone()),
-                source: None,
-                files_written: vec![dest],
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else {
-        anstream::eprintln!(
-            "{} rule '{}' --> {}",
-            "registered".green().bold(),
-            args.name.cyan(),
-            dest.display()
-        );
-    }
-    Ok(())
+    present_register("rule", output_format, EntityKind::Rule, args.name, dest)
 }
 
 fn register_agent(
@@ -268,7 +272,6 @@ fn register_agent(
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
     super::require_manifest(manifest_path)?;
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -294,26 +297,11 @@ fn register_agent(
         args.force,
     )?;
 
-    if json {
-        CommandOutput::ok(
-            ["register", "agent"],
-            MutationOutput {
-                kind: MutationKind::Register,
-                entity: EntityKind::Agent,
-                name: Some(agent_name.to_string()),
-                source: None,
-                files_written: vec![dest],
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else {
-        anstream::eprintln!(
-            "{} agent '{}' --> {}",
-            "registered".green().bold(),
-            agent_name.cyan(),
-            dest.display()
-        );
-    }
-    Ok(())
+    present_register(
+        "agent",
+        output_format,
+        EntityKind::Agent,
+        agent_name.to_string(),
+        dest,
+    )
 }

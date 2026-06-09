@@ -8,11 +8,12 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use theta_args::{MigrateArgs, OutputFormat};
 use theta_manifest::{read_document, read_manifest, schema_version};
-use theta_schema::CommandOutput;
 use theta_static::SCHEMA_VERSION;
 
+use super::output::present_no_op;
+
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct MigrateOutput {
+pub(crate) struct MigrateOutcome {
     pub from_version: String,
     pub to_version: String,
     pub migrated: bool,
@@ -24,7 +25,6 @@ pub(crate) fn execute(
     manifest_path: &Path,
 ) -> Result<()> {
     super::require_manifest(manifest_path)?;
-    let json = matches!(output_format, OutputFormat::Json);
 
     let doc = read_document(manifest_path)
         .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
@@ -36,24 +36,18 @@ pub(crate) fn execute(
         .with_context(|| format!("failed to validate {}", manifest_path.display()))?;
 
     if version == SCHEMA_VERSION {
-        if json {
-            CommandOutput::no_op(
-                ["migrate"],
-                MigrateOutput {
-                    from_version: version.to_string(),
-                    to_version: SCHEMA_VERSION.to_string(),
-                    migrated: false,
-                },
-            )
-            .print_json()?;
-        } else {
+        let outcome = MigrateOutcome {
+            from_version: version.to_string(),
+            to_version: SCHEMA_VERSION.to_string(),
+            migrated: false,
+        };
+        return present_no_op(&["migrate"], output_format, outcome, vec![], |_| {
             anstream::eprintln!(
                 "{} nothing to migrate - only one schema version exists ({})",
                 "ok".green().bold(),
                 SCHEMA_VERSION.cyan()
             );
-        }
-        return Ok(());
+        });
     }
 
     anyhow::bail!("migration from {version} to {SCHEMA_VERSION} is not yet implemented");

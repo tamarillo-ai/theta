@@ -6,11 +6,11 @@ use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use theta_args::{AddRuleArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
-use theta_schema::{ApplyMode, CommandOutput, Validate};
+use theta_schema::{ApplyMode, Validate};
 use theta_settings::ThetaSettings;
 
 use crate::commands::output::{
-    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind, present,
 };
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
@@ -21,7 +21,6 @@ pub(super) fn execute(
     settings: &ThetaSettings,
 ) -> Result<()> {
     require_manifest(manifest_path)?;
-    let json = matches!(output_format, OutputFormat::Json);
 
     if !theta_schema::is_valid_rule_name(&args.name) {
         bail!(
@@ -130,43 +129,46 @@ pub(super) fn execute(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if json {
-        let files_written = if scaffolded {
-            vec![rule_path.clone()]
-        } else {
-            vec![]
-        };
-        CommandOutput::ok(
-            ["add", "rule"],
-            MutationOutput {
-                kind: MutationKind::Add,
-                entity: EntityKind::Rule,
-                name: Some(args.name.clone()),
-                source: Some(MutationSource {
-                    kind: MutationSourceKind::Local,
-                    detail: rule_path_rel.clone(),
-                }),
-                files_written,
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else if args.path.is_some() {
-        anstream::eprintln!(
-            "{} rule \"{}\" from {}",
-            "registered".green().bold(),
-            args.name.cyan(),
-            rule_path_rel.cyan(),
-        );
+    let files_written = if scaffolded {
+        vec![rule_path.clone()]
     } else {
-        anstream::eprintln!(
-            "{} {} - edit it to define the rule",
-            "created".green().bold(),
-            rule_path_rel.cyan(),
-        );
-    }
-
-    Ok(())
+        vec![]
+    };
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(args.name.clone()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Local,
+            detail: rule_path_rel.clone(),
+        }),
+        files_written,
+        files_deleted: vec![],
+    };
+    let path_provided = args.path.is_some();
+    let name = args.name.clone();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            if path_provided {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from {}",
+                    "registered".green().bold(),
+                    name.cyan(),
+                    rule_path_rel.cyan(),
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} {} - edit it to define the rule",
+                    "created".green().bold(),
+                    rule_path_rel.cyan(),
+                );
+            }
+        },
+    )
 }
 
 // create the rule file on disk if it doesn't exist. returns true if a file was created
@@ -200,7 +202,6 @@ fn add_rule_from_store(
     output_format: OutputFormat,
     manifest_path: &Path,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
     // verify the store entry exists
     let store = theta_store::StoreHandle::open()?;
     if store.rule_path(store_name).is_none() {
@@ -231,37 +232,41 @@ fn add_rule_from_store(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if json {
-        CommandOutput::ok(
-            ["add", "rule"],
-            MutationOutput {
-                kind: MutationKind::Add,
-                entity: EntityKind::Rule,
-                name: Some(key.to_string()),
-                source: Some(MutationSource {
-                    kind: MutationSourceKind::Store,
-                    detail: store_name.to_string(),
-                }),
-                files_written: vec![],
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else if key == store_name {
-        anstream::eprintln!(
-            "{} rule \"{}\" from system store",
-            "registered".green().bold(),
-            key.cyan(),
-        );
-    } else {
-        anstream::eprintln!(
-            "{} rule \"{}\" from system store (store: {})",
-            "registered".green().bold(),
-            key.cyan(),
-            store_name.cyan(),
-        );
-    }
-    Ok(())
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(key.to_string()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Store,
+            detail: store_name.to_string(),
+        }),
+        files_written: vec![],
+        files_deleted: vec![],
+    };
+    let key_owned = key.to_string();
+    let store_owned = store_name.to_string();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            if key_owned == store_owned {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from system store",
+                    "registered".green().bold(),
+                    key_owned.cyan(),
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from system store (store: {})",
+                    "registered".green().bold(),
+                    key_owned.cyan(),
+                    store_owned.cyan(),
+                );
+            }
+        },
+    )
 }
 
 fn add_rule_from_git(
@@ -275,7 +280,6 @@ fn add_rule_from_git(
     output_format: OutputFormat,
     manifest_path: &Path,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
     let mut doc = read_document(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
 
@@ -308,29 +312,31 @@ fn add_rule_from_git(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if json {
-        CommandOutput::ok(
-            ["add", "rule"],
-            MutationOutput {
-                kind: MutationKind::Add,
-                entity: EntityKind::Rule,
-                name: Some(name.to_string()),
-                source: Some(MutationSource {
-                    kind: MutationSourceKind::Git,
-                    detail: git_url.to_string(),
-                }),
-                files_written: vec![],
-                files_deleted: vec![],
-            },
-        )
-        .print_json()?;
-    } else {
-        anstream::eprintln!(
-            "{} rule \"{}\" from git",
-            "registered".green().bold(),
-            name.cyan(),
-        );
-    }
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(name.to_string()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Git,
+            detail: git_url.to_string(),
+        }),
+        files_written: vec![],
+        files_deleted: vec![],
+    };
+    let name_owned = name.to_string();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            anstream::eprintln!(
+                "{} rule \"{}\" from git",
+                "registered".green().bold(),
+                name_owned.cyan(),
+            );
+        },
+    )?;
 
     if sync {
         crate::commands::sync::execute(

@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
 use serde::Serialize;
@@ -10,14 +10,13 @@ use theta_args::{CheckArgs, OutputFormat};
 use theta_cast::caster_for;
 use theta_harness::HarnessTarget;
 use theta_manifest::{collect_document_diagnostics, read_document, read_manifest, schema_version};
-use theta_schema::{
-    CommandFailure, CommandOutput, DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateContent,
-};
+use theta_schema::{DiagLevel, Diagnostic, ThetaManifest, Validate, ValidateContent};
 
+use super::output::{present, present_error};
 use crate::resolve::{check_refs, resolve_content};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct CheckOutput {
+pub(crate) struct CheckOutcome {
     pub valid: bool,
     pub errors: usize,
     pub warnings: usize,
@@ -32,7 +31,6 @@ pub(crate) fn execute(
     super::require_manifest(manifest_path)?;
     let manifest_label = manifest_label(manifest_path);
     let strict_materialization = !args.skip_materialization;
-    let json = matches!(output_format, OutputFormat::Json);
 
     let doc = read_document(manifest_path)
         .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
@@ -49,10 +47,7 @@ pub(crate) fn execute(
                 diags.push(Diagnostic::error("[manifest]", format!("{e}")));
             }
         }
-        if json {
-            return finish_check_json(&diags);
-        }
-        return report_schema_only(&diags, &manifest_label);
+        return finish_check(output_format, diags, manifest_label, true);
     }
 
     let manifest = read_manifest(manifest_path)
@@ -73,30 +68,68 @@ pub(crate) fn execute(
         diags.extend(caster.validate_config(&manifest));
     }
 
-    if json {
-        return finish_check_json(&diags);
-    }
-    finish_check(&diags, &manifest_label)
+    finish_check(output_format, diags, manifest_label, false)
 }
 
-fn finish_check_json(diags: &[Diagnostic]) -> Result<()> {
+fn finish_check(
+    output_format: OutputFormat,
+    diags: Vec<Diagnostic>,
+    manifest_label: String,
+    schema_only: bool,
+) -> Result<()> {
     let errors = diags.iter().filter(|d| d.level == DiagLevel::Error).count();
     let warnings = diags.iter().filter(|d| d.level == DiagLevel::Warn).count();
     let hints = diags.iter().filter(|d| d.level == DiagLevel::Hint).count();
-    let data = CheckOutput {
+    let outcome = CheckOutcome {
         valid: errors == 0,
         errors,
         warnings,
         hints,
     };
+
     if errors > 0 {
-        CommandOutput::error(["check"], data, diags.to_vec()).print_json()?;
-        return Err(CommandFailure.into());
+        let label = manifest_label.clone();
+        let diags_for_render = diags.clone();
+        let err = anyhow!("{label} has {errors} error(s) and {warnings} warning(s)");
+        return present_error(
+            &["check"],
+            output_format,
+            outcome,
+            diags,
+            move |_| {
+                super::report_diagnostics(&diags_for_render);
+            },
+            err,
+        );
     }
-    let mut env = CommandOutput::ok(["check"], data);
-    env.diagnostics = diags.to_vec();
-    env.print_json()?;
-    Ok(())
+
+    present(&["check"], output_format, outcome, diags, |o| {
+        if schema_only {
+            if o.warnings > 0 {
+                anstream::eprintln!(
+                    "{} {} passed schema checks with {} warning(s)",
+                    "ok".green().bold(),
+                    manifest_label.cyan(),
+                    o.warnings,
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} {} passed schema checks",
+                    "ok".green().bold(),
+                    manifest_label.cyan(),
+                );
+            }
+        } else if o.warnings > 0 {
+            anstream::eprintln!(
+                "{} {} is valid with {} warning(s)",
+                "ok".green().bold(),
+                manifest_label.cyan(),
+                o.warnings,
+            );
+        } else {
+            anstream::eprintln!("{} {} is valid", "ok".green().bold(), manifest_label.cyan(),);
+        }
+    })
 }
 
 fn check_lock_and_materialization(
@@ -117,50 +150,6 @@ fn check_lock_and_materialization(
         manifest,
         project_dir,
     ));
-}
-
-fn report_schema_only(diags: &[Diagnostic], manifest_label: &str) -> Result<()> {
-    let (errors, warnings) = super::report_diagnostics(diags);
-    if errors > 0 {
-        anyhow::bail!("{manifest_label} has {errors} error(s) and {warnings} warning(s)");
-    }
-
-    if warnings > 0 {
-        anstream::eprintln!(
-            "{} {} passed schema checks with {} warning(s)",
-            "ok".green().bold(),
-            manifest_label.cyan(),
-            warnings,
-        );
-    } else {
-        anstream::eprintln!(
-            "{} {} passed schema checks",
-            "ok".green().bold(),
-            manifest_label.cyan(),
-        );
-    }
-    Ok(())
-}
-
-fn finish_check(diags: &[Diagnostic], manifest_label: &str) -> Result<()> {
-    let (errors, warnings) = super::report_diagnostics(diags);
-
-    if errors > 0 {
-        anyhow::bail!("{manifest_label} has {errors} error(s) and {warnings} warning(s)");
-    }
-
-    if warnings > 0 {
-        anstream::eprintln!(
-            "{} {} is valid with {} warning(s)",
-            "ok".green().bold(),
-            manifest_label.cyan(),
-            warnings,
-        );
-    } else {
-        anstream::eprintln!("{} {} is valid", "ok".green().bold(), manifest_label.cyan(),);
-    }
-
-    Ok(())
 }
 
 fn manifest_label(manifest_path: &Path) -> String {

@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
 use schemars::JsonSchema;
@@ -10,16 +10,16 @@ use serde::Serialize;
 use theta_args::{OutputFormat, SyncArgs};
 use theta_lock::{LockedSource, read_lock};
 use theta_manifest::read_manifest;
-use theta_schema::{CommandFailure, CommandOutput};
 use theta_static::DOT_THETA_DIR;
 use theta_static::LOCKFILE;
 
 use crate::resolve::validate_materialized;
 
+use super::output::{present, present_error, present_no_op};
 use super::{project_dir, require_manifest};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct SyncOutput {
+pub(crate) struct SyncOutcome {
     pub theta_dir: PathBuf,
     pub created: usize,
     pub updated: usize,
@@ -83,55 +83,44 @@ pub(crate) fn execute(
         .filter(|d| matches!(d.level, theta_schema::DiagLevel::Error))
         .count();
 
+    let outcome = SyncOutcome {
+        theta_dir,
+        created: report.created,
+        updated: report.updated,
+    };
+
     if errors > 0 {
-        if json {
-            CommandOutput::error(
-                ["sync"],
-                SyncOutput {
-                    theta_dir,
-                    created: report.created,
-                    updated: report.updated,
-                },
-                diags,
-            )
-            .print_json()?;
-            return Err(CommandFailure.into());
-        }
-        let (_e, warnings) = super::report_diagnostics(&diags);
-        anyhow::bail!(
+        let warnings = diags.len() - errors;
+        let err = anyhow!(
             ".theta/ materialized but content validation failed: {errors} error(s), {warnings} warning(s)"
         );
-    }
-
-    if json {
-        let data = SyncOutput {
-            theta_dir,
-            created: report.created,
-            updated: report.updated,
-        };
-        if report.changed() {
-            let mut env = CommandOutput::ok(["sync"], data);
-            env.diagnostics = diags;
-            env.print_json()?;
-        } else {
-            let mut env = CommandOutput::no_op(["sync"], data);
-            env.diagnostics = diags;
-            env.print_json()?;
-        }
-        return Ok(());
+        let diags_for_render = diags.clone();
+        return present_error(
+            &["sync"],
+            output_format,
+            outcome,
+            diags,
+            move |_| {
+                super::report_diagnostics(&diags_for_render);
+            },
+            err,
+        );
     }
 
     if report.changed() {
-        anstream::eprintln!(
-            "{} .theta/ materialized ({} created, {} updated)",
-            "synced".green().bold(),
-            report.created,
-            report.updated,
-        );
+        present(&["sync"], output_format, outcome, diags, |o| {
+            anstream::eprintln!(
+                "{} .theta/ materialized ({} created, {} updated)",
+                "synced".green().bold(),
+                o.created,
+                o.updated,
+            );
+        })
     } else {
-        anstream::eprintln!("{} .theta/ is up to date", "synced".green().bold());
+        present_no_op(&["sync"], output_format, outcome, diags, |_| {
+            anstream::eprintln!("{} .theta/ is up to date", "synced".green().bold());
+        })
     }
-    Ok(())
 }
 
 fn count_remote_sources(lock: &theta_lock::LockFile) -> usize {

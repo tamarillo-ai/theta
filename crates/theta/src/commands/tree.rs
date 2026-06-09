@@ -12,8 +12,9 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use theta_args::{OutputFormat, TreeArgs};
 use theta_manifest::read_manifest;
-use theta_schema::{CommandOutput, Diagnostic};
+use theta_schema::Diagnostic;
 
+use super::output::present;
 use super::{project_dir, require_manifest};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
@@ -24,7 +25,7 @@ pub(crate) struct TreeNode {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct TreeOutput {
+pub(crate) struct TreeOutcome {
     pub tree: TreeNode,
 }
 
@@ -60,31 +61,26 @@ pub(crate) fn execute(
         }
     }
 
-    if matches!(output_format, OutputFormat::Json) {
-        let tree = build_tree(&manifest.agent.name, None, &edges);
-        let diagnostics: Vec<Diagnostic> = graph
-            .warnings
-            .iter()
-            .map(|w| Diagnostic::warn("[subagents]", w.message.clone()))
-            .collect();
-        let mut env = CommandOutput::ok(["tree"], TreeOutput { tree });
-        env.diagnostics = diagnostics;
-        env.print_json()?;
-        return Ok(());
-    }
+    let tree = build_tree(&manifest.agent.name, None, &edges);
+    let diagnostics: Vec<Diagnostic> = graph
+        .warnings
+        .iter()
+        .map(|w| Diagnostic::warn("[subagents]", w.message.clone()))
+        .collect();
+    let outcome = TreeOutcome { tree };
+    let edges_for_render = edges;
+    let root_name = manifest.agent.name.clone();
 
-    for w in &graph.warnings {
-        anstream::eprintln!("{} {}", "warn".yellow().bold(), w.message);
-    }
-
-    anstream::eprintln!("{}", manifest.agent.name.bold());
-    print_children(&manifest.agent.name, &edges, "");
-
-    if edges.is_empty() {
-        anstream::eprintln!("  {}", "(no subagents)".dimmed());
-    }
-
-    Ok(())
+    present(&["tree"], output_format, outcome, diagnostics, move |_| {
+        for w in &graph.warnings {
+            anstream::eprintln!("{} {}", "warn".yellow().bold(), w.message);
+        }
+        anstream::eprintln!("{}", root_name.bold());
+        print_children(&root_name, &edges_for_render, "");
+        if edges_for_render.is_empty() {
+            anstream::eprintln!("  {}", "(no subagents)".dimmed());
+        }
+    })
 }
 
 fn build_tree(

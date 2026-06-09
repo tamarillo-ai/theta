@@ -10,9 +10,11 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use theta_args::{ListCommand, ListNamespace, OutputFormat};
 use theta_manifest::read_manifest;
-use theta_schema::{CommandOutput, Rule, ThetaManifest};
+use theta_schema::{Rule, ThetaManifest};
 use theta_static::{StoreEntry, StoreIndexRuleEntry};
 use theta_store::StoreHandle;
+
+use super::output::present;
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -25,7 +27,7 @@ pub(crate) enum ListKind {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct ListOutput {
+pub(crate) struct ListOutcome {
     pub kind: ListKind,
     pub entries: serde_json::Value,
 }
@@ -35,15 +37,9 @@ pub(crate) fn execute(
     output_format: OutputFormat,
     manifest_path: &Path,
 ) -> Result<()> {
-    let json = matches!(output_format, OutputFormat::Json);
-
     // store listing does not need a manifest
     if let ListCommand::Store = ns.command {
-        return if json {
-            list_store_json()
-        } else {
-            list_store()
-        };
+        return list_store(output_format);
     }
 
     super::require_manifest(manifest_path)?;
@@ -51,21 +47,7 @@ pub(crate) fn execute(
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
 
-    if json {
-        return list_json(&ns.command, &manifest);
-    }
-
-    match ns.command {
-        ListCommand::Rules => list_rules(&manifest),
-        ListCommand::Tools => list_tools(&manifest),
-        ListCommand::Skills => list_skills(&manifest),
-        ListCommand::Subagents => list_subagents(&manifest),
-        ListCommand::Store => unreachable!("handled above"),
-    }
-}
-
-fn list_json(command: &ListCommand, manifest: &ThetaManifest) -> Result<()> {
-    let (kind, entries) = match command {
+    let (kind, entries) = match ns.command {
         ListCommand::Rules => (
             ListKind::Rules,
             manifest
@@ -95,10 +77,24 @@ fn list_json(command: &ListCommand, manifest: &ThetaManifest) -> Result<()> {
                 .as_ref()
                 .map_or_else(|| Ok(serde_json::json!([])), serde_json::to_value)?,
         ),
-        ListCommand::Store => return list_store_json(),
+        ListCommand::Store => unreachable!("handled above"),
     };
-    CommandOutput::ok(["list", kind_verb(&kind)], ListOutput { kind, entries }).print_json()?;
-    Ok(())
+
+    let outcome = ListOutcome { kind, entries };
+    let manifest_for_render = manifest;
+    present(
+        &["list", kind_verb(&outcome.kind)],
+        output_format,
+        outcome,
+        vec![],
+        move |o| match o.kind {
+            ListKind::Rules => render_rules(&manifest_for_render),
+            ListKind::Tools => render_tools(&manifest_for_render),
+            ListKind::Skills => render_skills(&manifest_for_render),
+            ListKind::Subagents => render_subagents(&manifest_for_render),
+            ListKind::Store => unreachable!(),
+        },
+    )
 }
 
 fn kind_verb(kind: &ListKind) -> &'static str {
@@ -111,7 +107,7 @@ fn kind_verb(kind: &ListKind) -> &'static str {
     }
 }
 
-fn list_store_json() -> Result<()> {
+fn list_store(output_format: OutputFormat) -> Result<()> {
     let store = StoreHandle::open()?;
     let index = store.load_index()?;
 
@@ -147,23 +143,25 @@ fn list_store_json() -> Result<()> {
         .map(|(k, v)| (k.clone(), to_rule_entry(v)))
         .collect();
 
-    CommandOutput::ok(
-        ["list", "store"],
-        ListOutput {
-            kind: ListKind::Store,
-            entries: serde_json::json!({
-                "agents": agents,
-                "skills": skills,
-                "rules": rules,
-            }),
-        },
+    let outcome = ListOutcome {
+        kind: ListKind::Store,
+        entries: serde_json::json!({
+            "agents": agents,
+            "skills": skills,
+            "rules": rules,
+        }),
+    };
+    let index_for_render = index;
+    present(
+        &["list", "store"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| render_store(&index_for_render),
     )
-    .print_json()?;
-    Ok(())
 }
 
-#[allow(clippy::unnecessary_wraps)]
-fn list_rules(manifest: &ThetaManifest) -> Result<()> {
+fn render_rules(manifest: &ThetaManifest) {
     let rules = match manifest
         .instructions
         .as_ref()
@@ -172,7 +170,7 @@ fn list_rules(manifest: &ThetaManifest) -> Result<()> {
         Some(r) if !r.is_empty() => r,
         _ => {
             anstream::eprintln!("{} no rules registered", "info".blue().bold());
-            return Ok(());
+            return;
         }
     };
 
@@ -186,16 +184,14 @@ fn list_rules(manifest: &ThetaManifest) -> Result<()> {
     for (name, rule) in rules {
         println!("{}", format_rule_line(name, rule));
     }
-    Ok(())
 }
 
-#[allow(clippy::unnecessary_wraps)]
-fn list_tools(manifest: &ThetaManifest) -> Result<()> {
+fn render_tools(manifest: &ThetaManifest) {
     let tools = match manifest.tools.as_ref() {
         Some(t) if !t.is_empty() => t,
         _ => {
             anstream::eprintln!("{} no tools registered", "info".blue().bold());
-            return Ok(());
+            return;
         }
     };
 
@@ -216,16 +212,14 @@ fn list_tools(manifest: &ThetaManifest) -> Result<()> {
             enabled.yellow(),
         );
     }
-    Ok(())
 }
 
-#[allow(clippy::unnecessary_wraps)]
-fn list_skills(manifest: &ThetaManifest) -> Result<()> {
+fn render_skills(manifest: &ThetaManifest) {
     let skills = match manifest.skills.as_ref() {
         Some(s) if !s.is_empty() => s,
         _ => {
             anstream::eprintln!("{} no skills registered", "info".blue().bold());
-            return Ok(());
+            return;
         }
     };
 
@@ -238,16 +232,14 @@ fn list_skills(manifest: &ThetaManifest) -> Result<()> {
             source_ref,
         );
     }
-    Ok(())
 }
 
-#[allow(clippy::unnecessary_wraps)]
-fn list_subagents(manifest: &ThetaManifest) -> Result<()> {
+fn render_subagents(manifest: &ThetaManifest) {
     let subs = match manifest.subagents.as_ref() {
         Some(s) if !s.is_empty() => s,
         _ => {
             anstream::eprintln!("{} no subagents registered", "info".blue().bold());
-            return Ok(());
+            return;
         }
     };
 
@@ -262,7 +254,6 @@ fn list_subagents(manifest: &ThetaManifest) -> Result<()> {
             println!("    model: {}", model.dimmed());
         }
     }
-    Ok(())
 }
 
 // format a single rule line for display (shared by list and describe)
@@ -281,10 +272,7 @@ pub(crate) fn format_rule_line(name: &str, rule: &Rule) -> String {
     }
 }
 
-fn list_store() -> Result<()> {
-    let store = StoreHandle::open()?;
-    let index = store.load_index()?;
-
+fn render_store(index: &theta_static::StoreIndex) {
     let mut any = false;
 
     if !index.agents.is_empty() {
@@ -314,6 +302,4 @@ fn list_store() -> Result<()> {
     if !any {
         anstream::eprintln!("{} system store is empty", "info".blue().bold());
     }
-
-    Ok(())
 }
