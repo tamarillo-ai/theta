@@ -137,3 +137,23 @@ jobs:
             --title "$TAG" \
             --generate-notes \
             "${files[@]}"
+
+  notify-theta-py:
+    name: "notify theta-py"
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: "fire repository_dispatch on tamarillo-ai/theta_py"
+        env:
+          GH_TOKEN: ${{ secrets.THETA_PY_DISPATCH_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          echo "dispatching theta-release event to tamarillo-ai/theta_py with theta_version=${version}"
+          gh api repos/tamarillo-ai/theta_py/dispatches \
+            --method POST \
+            -f event_type=theta-release \
+            -F "client_payload[theta_version]=${version}"
