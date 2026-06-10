@@ -4,15 +4,19 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddSystemArgs;
+use theta_args::{AddSystemArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 use theta_settings::ThetaSettings;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind, present,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
 pub(super) fn execute(
     args: AddSystemArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     settings: &ThetaSettings,
 ) -> Result<()> {
@@ -71,21 +75,44 @@ pub(super) fn execute(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if args.path.is_some() {
-        anstream::eprintln!(
-            "{} system prompt from {}",
-            "registered".green().bold(),
-            system_path_rel.cyan(),
-        );
+    let files_written = if scaffolded {
+        vec![system_path.clone()]
     } else {
-        anstream::eprintln!(
-            "{} {} - edit it to set your system prompt",
-            "created".green().bold(),
-            system_path_rel.cyan(),
-        );
-    }
-
-    Ok(())
+        vec![]
+    };
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::System,
+        name: None,
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Local,
+            detail: system_path_rel.clone(),
+        }),
+        files_written,
+        files_deleted: vec![],
+    };
+    let registered = args.path.is_some();
+    present(
+        &["add", "system"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            if registered {
+                anstream::eprintln!(
+                    "{} system prompt from {}",
+                    "registered".green().bold(),
+                    system_path_rel.cyan(),
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} {} - edit it to set your system prompt",
+                    "created".green().bold(),
+                    system_path_rel.cyan(),
+                );
+            }
+        },
+    )
 }
 
 fn scaffold_system_file(args: &AddSystemArgs, system_path: &Path) -> Result<bool> {

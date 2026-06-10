@@ -2,10 +2,13 @@
 
 use std::path::Path;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddSkillArgs;
+use theta_args::{AddSkillArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 use theta_static::is_default_manifest;
@@ -96,7 +99,11 @@ fn resolve_intent(args: &AddSkillArgs) -> Result<SkillIntent> {
     })
 }
 
-pub(super) fn execute(args: AddSkillArgs, manifest_path: &Path) -> Result<()> {
+pub(super) fn execute(
+    args: AddSkillArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let intent = resolve_intent(&args)?;
@@ -228,37 +235,27 @@ pub(super) fn execute(args: AddSkillArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    match &intent {
-        SkillIntent::CreateAndRegister { .. } => {
-            anstream::eprintln!(
-                "{} {} - edit {} to define the skill",
-                "created".green().bold(),
-                skill_dir_rel.cyan(),
-                format!("{}/{}", skill_dir_rel, theta_static::SKILL_FILE_NAME).cyan(),
-            );
-        }
-        SkillIntent::RegisterLocal { .. } => {
-            anstream::eprintln!(
-                "{} skill \"{}\" from {}",
-                "registered".green().bold(),
-                skill_name.cyan(),
-                skill_dir_rel.cyan(),
-            );
-        }
-        _ => {
-            let source_desc = match &intent {
-                SkillIntent::RegisterGit { .. } => "git",
-                SkillIntent::RegisterSystem { .. } => "system store",
-                _ => unreachable!(),
-            };
-            anstream::eprintln!(
-                "{} skill \"{}\" ({})",
-                "registered".green().bold(),
-                skill_name.cyan(),
-                source_desc,
-            );
-        }
-    }
+    let (source, human_line) = build_add_skill_summary(&intent, &skill_name, &skill_dir_rel);
+    let files_written = if scaffolded {
+        vec![project_dir.join(theta_static::SKILLS_DIR).join(&skill_name)]
+    } else {
+        vec![]
+    };
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Skill,
+        name: Some(skill_name.clone()),
+        source: Some(source),
+        files_written,
+        files_deleted: vec![],
+    };
+    crate::commands::output::present(
+        &["add", "skill"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| anstream::eprintln!("{human_line}"),
+    )?;
 
     // pre-fetch git sources into cache so they're ready for sync/cast
     // fetch failure is not fatal at add time -- sync will catch it
@@ -284,10 +281,72 @@ pub(super) fn execute(args: AddSkillArgs, manifest_path: &Path) -> Result<()> {
     // sync (lock + materialize everything) unless --no-sync or non-root manifest
     // same as uv: `uv add` always syncs, `uv add --no-sync` opts out
     if wants_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(
+            theta_args::SyncArgs { force: true },
+            OutputFormat::Human,
+            manifest_path,
+        )?;
     }
 
     Ok(())
+}
+
+/// Derive both the typed `MutationSource` for the JSON envelope and the
+/// human-readable headline from a [`SkillIntent`]. The render closure can
+/// then print the headline verbatim.
+fn build_add_skill_summary(
+    intent: &SkillIntent,
+    skill_name: &str,
+    skill_dir_rel: &str,
+) -> (MutationSource, String) {
+    match intent {
+        SkillIntent::CreateAndRegister { .. } => (
+            MutationSource {
+                kind: MutationSourceKind::Local,
+                detail: skill_dir_rel.to_string(),
+            },
+            format!(
+                "{} {} - edit {} to define the skill",
+                "created".green().bold(),
+                skill_dir_rel.cyan(),
+                format!("{}/{}", skill_dir_rel, theta_static::SKILL_FILE_NAME).cyan(),
+            ),
+        ),
+        SkillIntent::RegisterLocal { .. } => (
+            MutationSource {
+                kind: MutationSourceKind::Local,
+                detail: skill_dir_rel.to_string(),
+            },
+            format!(
+                "{} skill \"{}\" from {}",
+                "registered".green().bold(),
+                skill_name.cyan(),
+                skill_dir_rel.cyan(),
+            ),
+        ),
+        SkillIntent::RegisterGit { url, .. } => (
+            MutationSource {
+                kind: MutationSourceKind::Git,
+                detail: url.clone(),
+            },
+            format!(
+                "{} skill \"{}\" (git)",
+                "registered".green().bold(),
+                skill_name.cyan(),
+            ),
+        ),
+        SkillIntent::RegisterSystem { name } => (
+            MutationSource {
+                kind: MutationSourceKind::Store,
+                detail: name.clone(),
+            },
+            format!(
+                "{} skill \"{}\" (system store)",
+                "registered".green().bold(),
+                skill_name.cyan(),
+            ),
+        ),
+    }
 }
 
 /// Validate that a local skill directory exists, is a directory, and contains a valid SKILL.md

@@ -4,11 +4,13 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+mod command_output;
 mod resolved;
 mod validate_content;
 mod validate_fields;
 use std::fmt::Write;
 
+pub use command_output::{CommandFailure, CommandOutput, CommandStatus};
 pub use resolved::{ResolutionStatus, ResolvedRefKey, ResolvedRefs};
 
 /// Validate a rule name: either simple kebab (`safety`) or path-qualified (`backend/typescript`).
@@ -456,7 +458,7 @@ pub fn normalize_agent_name(raw: &str) -> String {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, JsonSchema)]
 #[serde(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum DiagLevel {
@@ -465,7 +467,7 @@ pub enum DiagLevel {
     Hint,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, JsonSchema)]
 pub struct Diagnostic {
     pub level: DiagLevel,
     pub path: String,

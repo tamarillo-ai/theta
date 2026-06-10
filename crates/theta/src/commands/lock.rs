@@ -1,18 +1,32 @@
 //! `theta lock` — resolve all sources and write `theta.lock`.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use owo_colors::OwoColorize;
-use theta_args::LockArgs;
+use schemars::JsonSchema;
+use serde::Serialize;
+use theta_args::{LockArgs, OutputFormat};
 use theta_git::cache_dir;
 use theta_lock::{build_lock, is_stale, read_lock, write_lock};
 use theta_manifest::read_manifest;
+use theta_schema::Diagnostic;
 use theta_static::LOCKFILE;
 
+use super::output::{present, present_error, present_no_op};
 use super::{project_dir, require_manifest};
 
-pub(crate) fn execute(args: LockArgs, manifest_path: &Path) -> Result<()> {
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct LockOutcome {
+    pub lockfile_path: PathBuf,
+    pub wrote: bool,
+}
+
+pub(crate) fn execute(
+    args: LockArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
@@ -21,34 +35,61 @@ pub(crate) fn execute(args: LockArgs, manifest_path: &Path) -> Result<()> {
     let manifest_bytes = fs_err::read(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
 
-    if !args.force && lock_path.exists() {
-        if let Ok(existing) = read_lock(&lock_path) {
-            if is_stale(&existing, &manifest_bytes, project_dir)?.is_none() {
-                anstream::eprintln!("{} theta.lock is up to date", "ok".green().bold());
-                return Ok(());
-            }
-        }
+    if !args.force
+        && lock_path.exists()
+        && let Ok(existing) = read_lock(&lock_path)
+        && is_stale(&existing, &manifest_bytes, project_dir)?.is_none()
+    {
+        let outcome = LockOutcome {
+            lockfile_path: lock_path,
+            wrote: false,
+        };
+        return present_no_op(&["lock"], output_format, outcome, vec![], |_| {
+            anstream::eprintln!("{} theta.lock is up to date", "ok".green().bold());
+        });
     }
 
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to parse {}", manifest_path.display()))?;
 
     let cache = cache_dir()?;
-    let lock = build_lock(&manifest, &manifest_bytes, project_dir, &cache).map_err(|errors| {
-        for e in &errors {
-            anstream::eprintln!("{} {}", "error".red().bold(), e);
+    let lock = match build_lock(&manifest, &manifest_bytes, project_dir, &cache) {
+        Ok(l) => l,
+        Err(errors) => {
+            let diags: Vec<Diagnostic> = errors
+                .iter()
+                .map(|e| Diagnostic::error("[lock]", e.to_string()))
+                .collect();
+            let outcome = LockOutcome {
+                lockfile_path: lock_path,
+                wrote: false,
+            };
+            let n = errors.len();
+            return present_error(
+                &["lock"],
+                output_format,
+                outcome,
+                diags,
+                |_| {
+                    for e in &errors {
+                        anstream::eprintln!("{} {}", "error".red().bold(), e);
+                    }
+                },
+                anyhow!("failed to lock: {n} error(s) - all declared sources must be reachable"),
+            );
         }
-        anyhow::anyhow!(
-            "failed to lock: {} error(s) - all declared sources must be reachable",
-            errors.len()
-        )
-    })?;
+    };
 
     write_lock(&lock_path, &lock)
         .with_context(|| format!("failed to write {}", lock_path.display()))?;
 
-    anstream::eprintln!("{} wrote {}", "locked".green().bold(), LOCKFILE.cyan());
-    Ok(())
+    let outcome = LockOutcome {
+        lockfile_path: lock_path,
+        wrote: true,
+    };
+    present(&["lock"], output_format, outcome, vec![], |_| {
+        anstream::eprintln!("{} wrote {}", "locked".green().bold(), LOCKFILE.cyan());
+    })
 }
 
 /// Lock if needed (lock missing or stale). Used by sync and cast.

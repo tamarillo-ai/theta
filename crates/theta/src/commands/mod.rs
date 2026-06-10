@@ -9,6 +9,7 @@ pub(crate) mod init;
 pub(crate) mod list;
 pub(crate) mod lock;
 pub(crate) mod migrate;
+pub(crate) mod output;
 pub(crate) mod register;
 pub(crate) mod rm;
 pub(crate) mod schema;

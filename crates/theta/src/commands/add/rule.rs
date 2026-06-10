@@ -4,15 +4,19 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
-use theta_args::AddRuleArgs;
+use theta_args::{AddRuleArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::{ApplyMode, Validate};
 use theta_settings::ThetaSettings;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind, present,
+};
 use crate::commands::{project_dir, report_diagnostics, require_manifest};
 
 pub(super) fn execute(
     args: AddRuleArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     settings: &ThetaSettings,
 ) -> Result<()> {
@@ -33,7 +37,7 @@ pub(super) fn execute(
         } else {
             store_name_arg.as_str()
         };
-        return add_rule_from_store(&args.name, store_name, manifest_path);
+        return add_rule_from_store(&args.name, store_name, output_format, manifest_path);
     }
 
     // --git: write a git ref, no file scaffolding
@@ -48,6 +52,7 @@ pub(super) fn execute(
             args.rev.as_deref(),
             file,
             args.sync,
+            output_format,
             manifest_path,
         );
     }
@@ -124,22 +129,46 @@ pub(super) fn execute(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if args.path.is_some() {
-        anstream::eprintln!(
-            "{} rule \"{}\" from {}",
-            "registered".green().bold(),
-            args.name.cyan(),
-            rule_path_rel.cyan(),
-        );
+    let files_written = if scaffolded {
+        vec![rule_path.clone()]
     } else {
-        anstream::eprintln!(
-            "{} {} - edit it to define the rule",
-            "created".green().bold(),
-            rule_path_rel.cyan(),
-        );
-    }
-
-    Ok(())
+        vec![]
+    };
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(args.name.clone()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Local,
+            detail: rule_path_rel.clone(),
+        }),
+        files_written,
+        files_deleted: vec![],
+    };
+    let path_provided = args.path.is_some();
+    let name = args.name.clone();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            if path_provided {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from {}",
+                    "registered".green().bold(),
+                    name.cyan(),
+                    rule_path_rel.cyan(),
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} {} - edit it to define the rule",
+                    "created".green().bold(),
+                    rule_path_rel.cyan(),
+                );
+            }
+        },
+    )
 }
 
 // create the rule file on disk if it doesn't exist. returns true if a file was created
@@ -167,7 +196,12 @@ fn scaffold_rule_file(args: &AddRuleArgs, rule_path: &Path) -> Result<bool> {
 }
 
 // write `[instructions.rules.<key>] src = { system = "<store_name>" }` to theta.toml
-fn add_rule_from_store(key: &str, store_name: &str, manifest_path: &Path) -> Result<()> {
+fn add_rule_from_store(
+    key: &str,
+    store_name: &str,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     // verify the store entry exists
     let store = theta_store::StoreHandle::open()?;
     if store.rule_path(store_name).is_none() {
@@ -198,21 +232,41 @@ fn add_rule_from_store(key: &str, store_name: &str, manifest_path: &Path) -> Res
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    if key == store_name {
-        anstream::eprintln!(
-            "{} rule \"{}\" from system store",
-            "registered".green().bold(),
-            key.cyan(),
-        );
-    } else {
-        anstream::eprintln!(
-            "{} rule \"{}\" from system store (store: {})",
-            "registered".green().bold(),
-            key.cyan(),
-            store_name.cyan(),
-        );
-    }
-    Ok(())
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(key.to_string()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Store,
+            detail: store_name.to_string(),
+        }),
+        files_written: vec![],
+        files_deleted: vec![],
+    };
+    let key_owned = key.to_string();
+    let store_owned = store_name.to_string();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            if key_owned == store_owned {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from system store",
+                    "registered".green().bold(),
+                    key_owned.cyan(),
+                );
+            } else {
+                anstream::eprintln!(
+                    "{} rule \"{}\" from system store (store: {})",
+                    "registered".green().bold(),
+                    key_owned.cyan(),
+                    store_owned.cyan(),
+                );
+            }
+        },
+    )
 }
 
 fn add_rule_from_git(
@@ -223,6 +277,7 @@ fn add_rule_from_git(
     rev: Option<&str>,
     file: &str,
     sync: bool,
+    output_format: OutputFormat,
     manifest_path: &Path,
 ) -> Result<()> {
     let mut doc = read_document(manifest_path)
@@ -257,14 +312,38 @@ fn add_rule_from_git(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    anstream::eprintln!(
-        "{} rule \"{}\" from git",
-        "registered".green().bold(),
-        name.cyan(),
-    );
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Rule,
+        name: Some(name.to_string()),
+        source: Some(MutationSource {
+            kind: MutationSourceKind::Git,
+            detail: git_url.to_string(),
+        }),
+        files_written: vec![],
+        files_deleted: vec![],
+    };
+    let name_owned = name.to_string();
+    present(
+        &["add", "rule"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            anstream::eprintln!(
+                "{} rule \"{}\" from git",
+                "registered".green().bold(),
+                name_owned.cyan(),
+            );
+        },
+    )?;
 
     if sync {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
+        crate::commands::sync::execute(
+            theta_args::SyncArgs { force: true },
+            OutputFormat::Human,
+            manifest_path,
+        )?;
     }
 
     Ok(())

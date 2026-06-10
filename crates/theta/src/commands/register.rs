@@ -4,26 +4,73 @@ use std::path::Path;
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
+use std::path::PathBuf;
 use theta_args::{
-    LockArgs, RegisterAgentArgs, RegisterCommand, RegisterNamespace, RegisterRuleArgs,
-    RegisterSkillArgs,
+    LockArgs, OutputFormat, RegisterAgentArgs, RegisterCommand, RegisterNamespace,
+    RegisterRuleArgs, RegisterSkillArgs,
 };
 use theta_manifest::read_manifest;
 use theta_schema::{LocalOrGitRef, SourceRef};
 use theta_store::StoreHandle;
 
+use super::output::{EntityKind, MutationKind, MutationOutput, present};
 use crate::skill_resolve::{
     ResolvedSkill, fetch_git_checkout, parse_github_ref, read_skill_description,
 };
 
-pub(crate) fn dispatch(ns: RegisterNamespace, manifest_path: &Path) -> Result<()> {
+pub(crate) fn dispatch(
+    ns: RegisterNamespace,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     let store = StoreHandle::open()?;
 
     match ns.command {
-        RegisterCommand::Skill(args) => register_skill(args, manifest_path, &store),
-        RegisterCommand::Rule(args) => register_rule(args, manifest_path, &store),
-        RegisterCommand::Agent(args) => register_agent(args, manifest_path, &store),
+        RegisterCommand::Skill(args) => register_skill(args, output_format, manifest_path, &store),
+        RegisterCommand::Rule(args) => register_rule(args, output_format, manifest_path, &store),
+        RegisterCommand::Agent(args) => register_agent(args, output_format, manifest_path, &store),
     }
+}
+
+/// Wrap a `register` outcome in the canonical envelope. Every register
+/// variant produces "registered <kind> '<name>' --> <dest>".
+fn present_register(
+    verb_tail: &str,
+    output_format: OutputFormat,
+    entity: EntityKind,
+    name: String,
+    dest: PathBuf,
+) -> Result<()> {
+    let label_kind = match entity {
+        EntityKind::Skill => "skill",
+        EntityKind::Rule => "rule",
+        EntityKind::Agent => "agent",
+        _ => "entry",
+    };
+    let name_for_render = name.clone();
+    let dest_for_render = dest.clone();
+    present(
+        &["register", verb_tail],
+        output_format,
+        MutationOutput {
+            kind: MutationKind::Register,
+            entity,
+            name: Some(name),
+            source: None,
+            files_written: vec![dest],
+            files_deleted: vec![],
+        },
+        vec![],
+        move |_| {
+            anstream::eprintln!(
+                "{} {} '{}' --> {}",
+                "registered".green().bold(),
+                label_kind,
+                name_for_render.cyan(),
+                dest_for_render.display()
+            );
+        },
+    )
 }
 
 fn resolve_manifest_skill(name: &str, manifest_path: &Path) -> Result<ResolvedSkill> {
@@ -134,6 +181,7 @@ fn resolve_standalone_skill(args: &RegisterSkillArgs) -> Result<ResolvedSkill> {
 
 fn register_skill(
     args: RegisterSkillArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
@@ -159,16 +207,21 @@ fn register_skill(
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} skill '{}' --> {}",
-        "registered".green().bold(),
-        resolved.name.cyan(),
-        dest.display()
-    );
-    Ok(())
+    present_register(
+        "skill",
+        output_format,
+        EntityKind::Skill,
+        resolved.name,
+        dest,
+    )
 }
 
-fn register_rule(args: RegisterRuleArgs, manifest_path: &Path, store: &StoreHandle) -> Result<()> {
+fn register_rule(
+    args: RegisterRuleArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+    store: &StoreHandle,
+) -> Result<()> {
     super::require_manifest(manifest_path)?;
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -210,17 +263,12 @@ fn register_rule(args: RegisterRuleArgs, manifest_path: &Path, store: &StoreHand
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} rule '{}' --> {}",
-        "registered".green().bold(),
-        args.name.cyan(),
-        dest.display()
-    );
-    Ok(())
+    present_register("rule", output_format, EntityKind::Rule, args.name, dest)
 }
 
 fn register_agent(
     args: RegisterAgentArgs,
+    output_format: OutputFormat,
     manifest_path: &Path,
     store: &StoreHandle,
 ) -> Result<()> {
@@ -233,9 +281,12 @@ fn register_agent(
 
     // optionally lock first
     if !args.no_lock {
-        super::lock::execute(LockArgs { force: false }, manifest_path).with_context(
-            || "theta lock failed before registration - fix errors above and retry",
-        )?;
+        super::lock::execute(
+            LockArgs { force: false },
+            OutputFormat::Human,
+            manifest_path,
+        )
+        .with_context(|| "theta lock failed before registration - fix errors above and retry")?;
     }
 
     let dest = store.register_agent(
@@ -246,11 +297,11 @@ fn register_agent(
         args.force,
     )?;
 
-    anstream::eprintln!(
-        "{} agent '{}' --> {}",
-        "registered".green().bold(),
-        agent_name.cyan(),
-        dest.display()
-    );
-    Ok(())
+    present_register(
+        "agent",
+        output_format,
+        EntityKind::Agent,
+        agent_name.to_string(),
+        dest,
+    )
 }

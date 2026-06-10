@@ -1,11 +1,13 @@
 //! `theta sync` — materialize dependencies into `.theta/`.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use indicatif::{ProgressBar, ProgressStyle};
 use owo_colors::OwoColorize;
-use theta_args::SyncArgs;
+use schemars::JsonSchema;
+use serde::Serialize;
+use theta_args::{OutputFormat, SyncArgs};
 use theta_lock::{LockedSource, read_lock};
 use theta_manifest::read_manifest;
 use theta_static::DOT_THETA_DIR;
@@ -13,13 +15,30 @@ use theta_static::LOCKFILE;
 
 use crate::resolve::validate_materialized;
 
-use super::{project_dir, report_diagnostics, require_manifest};
+use super::output::{present, present_error, present_no_op};
+use super::{project_dir, require_manifest};
 
-pub(crate) fn execute(args: SyncArgs, manifest_path: &Path) -> Result<()> {
+#[derive(Debug, Clone, Serialize, JsonSchema)]
+pub(crate) struct SyncOutcome {
+    pub theta_dir: PathBuf,
+    pub created: usize,
+    pub updated: usize,
+}
+
+pub(crate) fn execute(
+    args: SyncArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
+    let json = matches!(output_format, OutputFormat::Json);
 
     if args.force {
-        super::lock::execute(theta_args::LockArgs { force: true }, manifest_path)?;
+        super::lock::execute(
+            theta_args::LockArgs { force: true },
+            OutputFormat::Human,
+            manifest_path,
+        )?;
     } else {
         super::lock::ensure_locked(manifest_path)?;
     }
@@ -32,7 +51,7 @@ pub(crate) fn execute(args: SyncArgs, manifest_path: &Path) -> Result<()> {
         read_lock(&lock_path).with_context(|| format!("failed to read {}", lock_path.display()))?;
 
     let remote_count = count_remote_sources(&lock);
-    let pb = if remote_count > 0 {
+    let pb = if remote_count > 0 && !json {
         let pb = ProgressBar::new(remote_count as u64);
         pb.set_style(
             ProgressStyle::default_bar()
@@ -58,24 +77,50 @@ pub(crate) fn execute(args: SyncArgs, manifest_path: &Path) -> Result<()> {
         .with_context(|| format!("failed to read {} for validation", manifest_path.display()))?;
     let mut diags = Vec::new();
     validate_materialized(&manifest, project_dir, &mut diags);
-    let (errors, warnings) = report_diagnostics(&diags);
+
+    let errors = diags
+        .iter()
+        .filter(|d| matches!(d.level, theta_schema::DiagLevel::Error))
+        .count();
+
+    let outcome = SyncOutcome {
+        theta_dir,
+        created: report.created,
+        updated: report.updated,
+    };
+
     if errors > 0 {
-        anyhow::bail!(
+        let warnings = diags.len() - errors;
+        let err = anyhow!(
             ".theta/ materialized but content validation failed: {errors} error(s), {warnings} warning(s)"
+        );
+        let diags_for_render = diags.clone();
+        return present_error(
+            &["sync"],
+            output_format,
+            outcome,
+            diags,
+            move |_| {
+                super::report_diagnostics(&diags_for_render);
+            },
+            err,
         );
     }
 
     if report.changed() {
-        anstream::eprintln!(
-            "{} .theta/ materialized ({} created, {} updated)",
-            "synced".green().bold(),
-            report.created,
-            report.updated,
-        );
+        present(&["sync"], output_format, outcome, diags, |o| {
+            anstream::eprintln!(
+                "{} .theta/ materialized ({} created, {} updated)",
+                "synced".green().bold(),
+                o.created,
+                o.updated,
+            );
+        })
     } else {
-        anstream::eprintln!("{} .theta/ is up to date", "synced".green().bold());
+        present_no_op(&["sync"], output_format, outcome, diags, |_| {
+            anstream::eprintln!("{} .theta/ is up to date", "synced".green().bold());
+        })
     }
-    Ok(())
 }
 
 fn count_remote_sources(lock: &theta_lock::LockFile) -> usize {

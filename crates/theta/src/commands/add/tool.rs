@@ -9,10 +9,13 @@ use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use std::fmt::Write;
 use std::path::Path;
-use theta_args::AddToolArgs;
+use theta_args::{AddToolArgs, OutputFormat};
 use theta_manifest::{ensure_table, parse_manifest, read_document, write_document};
 use theta_schema::Validate;
 
+use crate::commands::output::{
+    EntityKind, MutationKind, MutationOutput, MutationSource, MutationSourceKind, present,
+};
 use crate::commands::{report_diagnostics, require_manifest};
 
 struct ToolEntry {
@@ -26,7 +29,11 @@ struct ToolEntry {
     source_label: Option<String>,
 }
 
-pub(super) fn execute(args: AddToolArgs, manifest_path: &Path) -> Result<()> {
+pub(super) fn execute(
+    args: AddToolArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let entry = if theta_registry::is_registry_name(&args.name) {
@@ -42,33 +49,50 @@ pub(super) fn execute(args: AddToolArgs, manifest_path: &Path) -> Result<()> {
     } else {
         "http"
     };
-    match &entry.source_label {
-        Some(source) => anstream::eprintln!(
-            "{} tool \"{}\" from {} ({})",
-            "registered".green().bold(),
-            entry.name.cyan(),
-            source.dimmed(),
-            transport,
-        ),
-        None => anstream::eprintln!(
-            "{} tool \"{}\" ({})",
-            "registered".green().bold(),
-            entry.name.cyan(),
-            transport,
-        ),
-    }
 
-    if !entry.envs.is_empty() {
-        let has_placeholder = entry.envs.iter().any(|(_, v)| v.contains("${env:"));
-        if has_placeholder {
-            anstream::eprintln!(
-                "{} some env values are ${{env:NAME}} placeholders - set the actual values in your environment",
-                "hint".blue().bold(),
-            );
-        }
-    }
-
-    Ok(())
+    let outcome = MutationOutput {
+        kind: MutationKind::Add,
+        entity: EntityKind::Tool,
+        name: Some(entry.name.clone()),
+        source: entry.source_label.as_ref().map(|s| MutationSource {
+            kind: MutationSourceKind::Inline,
+            detail: s.clone(),
+        }),
+        files_written: vec![],
+        files_deleted: vec![],
+    };
+    let envs = entry.envs.clone();
+    let source_label = entry.source_label.clone();
+    let entry_name = entry.name.clone();
+    present(
+        &["add", "tool"],
+        output_format,
+        outcome,
+        vec![],
+        move |_| {
+            match &source_label {
+                Some(source) => anstream::eprintln!(
+                    "{} tool \"{}\" from {} ({})",
+                    "registered".green().bold(),
+                    entry_name.cyan(),
+                    source.dimmed(),
+                    transport,
+                ),
+                None => anstream::eprintln!(
+                    "{} tool \"{}\" ({})",
+                    "registered".green().bold(),
+                    entry_name.cyan(),
+                    transport,
+                ),
+            }
+            if !envs.is_empty() && envs.iter().any(|(_, v)| v.contains("${env:")) {
+                anstream::eprintln!(
+                    "{} some env values are ${{env:NAME}} placeholders - set the actual values in your environment",
+                    "hint".blue().bold(),
+                );
+            }
+        },
+    )
 }
 
 fn resolve_from_registry(args: &AddToolArgs) -> Result<ToolEntry> {

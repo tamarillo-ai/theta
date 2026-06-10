@@ -1,64 +1,109 @@
 //! `theta rm` — remove rules, tools, skills, or subagents from the manifest.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use owo_colors::OwoColorize;
 use theta_args::{
-    RmCommand, RmNamespace, RmRuleArgs, RmSkillArgs, RmStoreArgs, RmSubagentArgs, RmSystemArgs,
-    RmToolArgs,
+    OutputFormat, RmCommand, RmNamespace, RmRuleArgs, RmSkillArgs, RmStoreArgs, RmSubagentArgs,
+    RmSystemArgs, RmToolArgs,
 };
 use theta_manifest::{read_document, read_manifest, write_document};
 use theta_static::is_default_manifest;
 
+use super::output::{EntityKind, MutationKind, MutationOutput, present};
 use super::{project_dir, require_manifest};
 
-pub(crate) fn dispatch(ns: RmNamespace, manifest_path: &Path) -> Result<()> {
+pub(crate) fn dispatch(
+    ns: RmNamespace,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     match ns.command {
-        RmCommand::Rule(args) => rm_rule(args, manifest_path),
-        RmCommand::System(args) => rm_system(args, manifest_path),
-        RmCommand::Tool(args) => rm_tool(args, manifest_path),
-        RmCommand::Skill(args) => rm_skill(args, manifest_path),
-        RmCommand::Subagent(args) => rm_subagent(args, manifest_path),
-        RmCommand::Store(args) => rm_store(args),
+        RmCommand::Rule(args) => rm_rule(args, output_format, manifest_path),
+        RmCommand::System(args) => rm_system(args, output_format, manifest_path),
+        RmCommand::Tool(args) => rm_tool(args, output_format, manifest_path),
+        RmCommand::Skill(args) => rm_skill(args, output_format, manifest_path),
+        RmCommand::Subagent(args) => rm_subagent(args, output_format, manifest_path),
+        RmCommand::Store(args) => rm_store(args, output_format),
     }
 }
 
-/// Attempt to delete source; print "removed {label} and deleted {src}" if successful.
-/// Returns `Ok(true)` when the source was deleted (caller should `return Ok(())`).
-fn try_delete_source(
+/// Delete `source` if it exists (file or directory) and append the resulting
+/// path to `out`. Used by every `rm_*` variant that takes `--delete`.
+fn delete_source(
     project_dir: &Path,
-    source_path: Option<&str>,
-    label: &str,
+    source: Option<&str>,
     is_dir: bool,
-) -> Result<bool> {
-    let Some(src) = source_path else {
-        return Ok(false);
-    };
-    let full_path = project_dir.join(src);
-    if !full_path.exists() {
-        return Ok(false);
+    out: &mut Vec<PathBuf>,
+) -> Result<()> {
+    let Some(rel) = source else { return Ok(()) };
+    let full = project_dir.join(rel);
+    if !full.exists() {
+        return Ok(());
     }
     if is_dir {
-        fs_err::remove_dir_all(&full_path)
+        fs_err::remove_dir_all(&full)
     } else {
-        fs_err::remove_file(&full_path)
+        fs_err::remove_file(&full)
     }
-    .with_context(|| format!("failed to delete {}", full_path.display()))?;
-    anstream::eprintln!(
-        "{} {} and deleted {}",
-        "removed".red().bold(),
-        label,
-        src.dimmed(),
-    );
-    Ok(true)
+    .with_context(|| format!("failed to delete {}", full.display()))?;
+    out.push(full);
+    Ok(())
 }
 
-fn print_removed(label: &str) {
+/// Wrap a manifest-side removal in the canonical envelope.
+fn present_rm<F>(
+    verb_tail: &str,
+    output_format: OutputFormat,
+    entity: EntityKind,
+    name: Option<String>,
+    files_deleted: Vec<PathBuf>,
+    render_human: F,
+) -> Result<()>
+where
+    F: FnOnce(&MutationOutput),
+{
+    present(
+        &["rm", verb_tail],
+        output_format,
+        MutationOutput {
+            kind: MutationKind::Remove,
+            entity,
+            name,
+            source: None,
+            files_written: vec![],
+            files_deleted,
+        },
+        vec![],
+        render_human,
+    )
+}
+
+fn render_removed(label: &str, files_deleted: &[PathBuf]) {
+    for p in files_deleted {
+        anstream::eprintln!(
+            "{} {} and deleted {}",
+            "removed".red().bold(),
+            label,
+            p.display().to_string().dimmed(),
+        );
+    }
     anstream::eprintln!("{} {}", "removed".red().bold(), label);
 }
 
-fn rm_rule(args: RmRuleArgs, manifest_path: &Path) -> Result<()> {
+fn auto_sync(manifest_path: &Path, args_no_sync: bool) -> Result<()> {
+    if !args_no_sync && is_default_manifest(manifest_path) {
+        crate::commands::sync::execute(
+            theta_args::SyncArgs { force: true },
+            OutputFormat::Human,
+            manifest_path,
+        )?;
+    }
+    Ok(())
+}
+
+fn rm_rule(args: RmRuleArgs, output_format: OutputFormat, manifest_path: &Path) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
@@ -117,29 +162,40 @@ fn rm_rule(args: RmRuleArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    let label = format!("rule \"{}\"", args.name.cyan());
+    let mut files_deleted = Vec::new();
     if args.delete {
-        try_delete_source(project_dir, source_path.as_deref(), &label, false)?;
+        delete_source(
+            project_dir,
+            source_path.as_deref(),
+            false,
+            &mut files_deleted,
+        )?;
     }
 
-    print_removed(&label);
-    if !args.delete {
-        if let Some(ref src) = source_path {
-            anstream::eprintln!(
-                "{} source file {} was not deleted - use --delete to remove it",
-                "hint".blue().bold(),
-                src.dimmed(),
-            );
-        }
-    }
+    let label = format!("rule \"{}\"", args.name.cyan());
+    let undeleted_hint = (!args.delete).then(|| source_path.clone()).flatten();
+    present_rm(
+        "rule",
+        output_format,
+        EntityKind::Rule,
+        Some(args.name.clone()),
+        files_deleted,
+        move |out| {
+            render_removed(&label, &out.files_deleted);
+            if let Some(src) = undeleted_hint {
+                anstream::eprintln!(
+                    "{} source file {} was not deleted - use --delete to remove it",
+                    "hint".blue().bold(),
+                    src.dimmed(),
+                );
+            }
+        },
+    )?;
 
-    if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
-    }
-    Ok(())
+    auto_sync(manifest_path, args.no_sync)
 }
 
-fn rm_system(args: RmSystemArgs, manifest_path: &Path) -> Result<()> {
+fn rm_system(args: RmSystemArgs, output_format: OutputFormat, manifest_path: &Path) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
@@ -171,20 +227,29 @@ fn rm_system(args: RmSystemArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    let label = "system prompt";
+    let mut files_deleted = Vec::new();
     if args.delete {
-        try_delete_source(project_dir, source_path.as_deref(), label, false)?;
+        delete_source(
+            project_dir,
+            source_path.as_deref(),
+            false,
+            &mut files_deleted,
+        )?;
     }
 
-    print_removed(label);
+    present_rm(
+        "system",
+        output_format,
+        EntityKind::System,
+        None,
+        files_deleted,
+        |out| render_removed("system prompt", &out.files_deleted),
+    )?;
 
-    if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
-    }
-    Ok(())
+    auto_sync(manifest_path, args.no_sync)
 }
 
-fn rm_tool(args: RmToolArgs, manifest_path: &Path) -> Result<()> {
+fn rm_tool(args: RmToolArgs, output_format: OutputFormat, manifest_path: &Path) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let mut doc = read_document(manifest_path)
@@ -215,11 +280,18 @@ fn rm_tool(args: RmToolArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    print_removed(&format!("tool \"{}\"", args.name.cyan()));
-    Ok(())
+    let label = format!("tool \"{}\"", args.name.cyan());
+    present_rm(
+        "tool",
+        output_format,
+        EntityKind::Tool,
+        Some(args.name.clone()),
+        vec![],
+        move |out| render_removed(&label, &out.files_deleted),
+    )
 }
 
-fn rm_skill(args: RmSkillArgs, manifest_path: &Path) -> Result<()> {
+fn rm_skill(args: RmSkillArgs, output_format: OutputFormat, manifest_path: &Path) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
@@ -264,20 +336,34 @@ fn rm_skill(args: RmSkillArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    let label = format!("skill \"{}\"", args.name.cyan());
+    let mut files_deleted = Vec::new();
     if args.delete {
-        try_delete_source(project_dir, source_path.as_deref(), &label, true)?;
+        delete_source(
+            project_dir,
+            source_path.as_deref(),
+            true,
+            &mut files_deleted,
+        )?;
     }
 
-    print_removed(&label);
+    let label = format!("skill \"{}\"", args.name.cyan());
+    present_rm(
+        "skill",
+        output_format,
+        EntityKind::Skill,
+        Some(args.name.clone()),
+        files_deleted,
+        move |out| render_removed(&label, &out.files_deleted),
+    )?;
 
-    if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
-    }
-    Ok(())
+    auto_sync(manifest_path, args.no_sync)
 }
 
-fn rm_subagent(args: RmSubagentArgs, manifest_path: &Path) -> Result<()> {
+fn rm_subagent(
+    args: RmSubagentArgs,
+    output_format: OutputFormat,
+    manifest_path: &Path,
+) -> Result<()> {
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
@@ -333,29 +419,60 @@ fn rm_subagent(args: RmSubagentArgs, manifest_path: &Path) -> Result<()> {
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    let label = format!("subagent \"{}\"", args.name.cyan());
+    let mut files_deleted = Vec::new();
     if args.delete {
-        try_delete_source(project_dir, ref_path.as_deref(), &label, false)?;
-        try_delete_source(project_dir, prompt_path.as_deref(), &label, false)?;
+        for src in [ref_path.as_deref(), prompt_path.as_deref()]
+            .into_iter()
+            .flatten()
+        {
+            delete_source(project_dir, Some(src), false, &mut files_deleted)?;
+        }
     }
 
-    print_removed(&label);
+    let label = format!("subagent \"{}\"", args.name.cyan());
+    present_rm(
+        "subagent",
+        output_format,
+        EntityKind::Subagent,
+        Some(args.name.clone()),
+        files_deleted,
+        move |out| render_removed(&label, &out.files_deleted),
+    )?;
 
-    if !args.no_sync && is_default_manifest(manifest_path) {
-        crate::commands::sync::execute(theta_args::SyncArgs { force: true }, manifest_path)?;
-    }
-    Ok(())
+    auto_sync(manifest_path, args.no_sync)
 }
 
-fn rm_store(args: RmStoreArgs) -> Result<()> {
+fn rm_store(args: RmStoreArgs, output_format: OutputFormat) -> Result<()> {
     let store = theta_store::StoreHandle::open()?;
     store.unregister(args.kind, &args.name)?;
 
-    anstream::eprintln!(
-        "{} {} '{}' from system store",
-        "unregistered".red().bold(),
-        args.kind,
-        args.name.cyan(),
-    );
-    Ok(())
+    let entity = match args.kind {
+        theta_static::StoreResourceKind::Agent => EntityKind::Agent,
+        theta_static::StoreResourceKind::Skill => EntityKind::Skill,
+        theta_static::StoreResourceKind::Rule => EntityKind::Rule,
+        _ => EntityKind::Agent,
+    };
+    let name = args.name.clone();
+    let kind = args.kind;
+    present(
+        &["rm", "store"],
+        output_format,
+        MutationOutput {
+            kind: MutationKind::Unregister,
+            entity,
+            name: Some(args.name.clone()),
+            source: None,
+            files_written: vec![],
+            files_deleted: vec![],
+        },
+        vec![],
+        move |_| {
+            anstream::eprintln!(
+                "{} {} '{}' from system store",
+                "unregistered".red().bold(),
+                kind,
+                name.cyan(),
+            );
+        },
+    )
 }
