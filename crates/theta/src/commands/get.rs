@@ -109,19 +109,22 @@ pub(crate) fn execute(
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
-    let theta_dir = project_dir.join(DOT_THETA_DIR);
+    let out_dir = std::env::var(theta_static::THETA_OUT_DIR_ENV)
+        .ok()
+        .map_or_else(|| project_dir.to_path_buf(), std::path::PathBuf::from);
+    let theta_dir = out_dir.join(DOT_THETA_DIR);
 
     if !theta_dir.exists() {
         anyhow::bail!(
             ".theta/ not found in {} — run `theta sync` first",
-            project_dir.display()
+            out_dir.display()
         );
     }
 
     let manifest = read_manifest(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
 
-    let lock_hash = read_lock_hash(project_dir);
+    let lock_hash = read_lock_hash(&out_dir);
     let agent = build_agent_info(&manifest);
     let system_prompt = read_system_prompt(&theta_dir);
     let rules = build_rules(&manifest, &theta_dir);
