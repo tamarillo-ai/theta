@@ -5,6 +5,7 @@ pub(crate) mod add;
 pub(crate) mod cast;
 pub(crate) mod check;
 pub(crate) mod describe;
+pub(crate) mod get;
 pub(crate) mod init;
 pub(crate) mod list;
 pub(crate) mod lock;

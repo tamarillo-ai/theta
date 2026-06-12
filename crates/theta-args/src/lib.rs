@@ -117,6 +117,9 @@ pub enum Commands {
 
     /// Print the theta.toml JSON Schema
     Schema(SchemaArgs),
+
+    /// Emit all materialized project content as JSON (requires theta sync first)
+    Get(GetArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -492,7 +495,20 @@ pub struct SchemaArgs {
     /// When set, the manifest JSON Schema is not printed.
     #[arg(long)]
     pub list_verbs: bool,
+
+    /// Emit the JSON Schema for the `theta get` output data object.
+    /// When set, neither the manifest schema nor the verb tree is printed.
+    #[arg(long, conflicts_with_all = ["list_verbs", "constants"])]
+    pub get: bool,
+
+    /// Emit theta-static path constants as JSON, for use by `theta_py` codegen.
+    /// When set, neither the manifest schema nor the verb tree is printed.
+    #[arg(long, conflicts_with_all = ["list_verbs", "get"])]
+    pub constants: bool,
 }
+
+#[derive(Debug, clap::Args)]
+pub struct GetArgs {}
 
 #[derive(Debug, clap::Args)]
 pub struct RmNamespace {
