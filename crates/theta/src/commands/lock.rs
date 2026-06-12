@@ -30,7 +30,10 @@ pub(crate) fn execute(
     require_manifest(manifest_path)?;
 
     let project_dir = project_dir(manifest_path)?;
-    let lock_path = project_dir.join(LOCKFILE);
+    let out_dir = std::env::var(theta_static::THETA_OUT_DIR_ENV)
+        .ok()
+        .map_or_else(|| project_dir.to_path_buf(), std::path::PathBuf::from);
+    let lock_path = out_dir.join(LOCKFILE);
 
     let manifest_bytes = fs_err::read(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -80,6 +83,10 @@ pub(crate) fn execute(
         }
     };
 
+    if let Some(parent) = lock_path.parent() {
+        fs_err::create_dir_all(parent)
+            .with_context(|| format!("failed to create {}", parent.display()))?;
+    }
     write_lock(&lock_path, &lock)
         .with_context(|| format!("failed to write {}", lock_path.display()))?;
 
@@ -95,7 +102,10 @@ pub(crate) fn execute(
 /// Lock if needed (lock missing or stale). Used by sync and cast.
 pub(crate) fn ensure_locked(manifest_path: &Path) -> Result<()> {
     let project_dir = project_dir(manifest_path)?;
-    let lock_path = project_dir.join(LOCKFILE);
+    let out_dir = std::env::var(theta_static::THETA_OUT_DIR_ENV)
+        .ok()
+        .map_or_else(|| project_dir.to_path_buf(), std::path::PathBuf::from);
+    let lock_path = out_dir.join(LOCKFILE);
 
     let manifest_bytes = fs_err::read(manifest_path)
         .with_context(|| format!("failed to read {}", manifest_path.display()))?;
@@ -128,6 +138,10 @@ pub(crate) fn ensure_locked(manifest_path: &Path) -> Result<()> {
                 )
             })?;
 
+        if let Some(parent) = lock_path.parent() {
+            fs_err::create_dir_all(parent)
+                .with_context(|| format!("failed to create {}", parent.display()))?;
+        }
         write_lock(&lock_path, &lock)
             .with_context(|| format!("failed to write {}", lock_path.display()))?;
 
