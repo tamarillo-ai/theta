@@ -84,3 +84,9 @@ check-cli-docs:
 [group: 'docs']
 docs-serve:
     mkdocs serve --livereload
+
+# install theta from source into ~/.local/bin (takes priority over ~/.cargo/bin)
+# cargo install --root sets the installation root; binary lands at <root>/bin/theta.
+[group: 'dev']
+install:
+    cargo install --path crates/theta --root ~/.local --locked
