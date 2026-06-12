@@ -66,6 +66,15 @@ pub const THETA_SUBAGENTS_DIR_ENV: &str = "THETA_SUBAGENTS_DIR";
 /// Defaults to `$XDG_DATA_HOME/theta` when unset.
 pub const THETA_DATA_DIR_ENV: &str = "THETA_DATA_DIR";
 
+/// Override the output directory for `.theta/` and `theta.lock`.
+///
+/// When set, `theta sync` and `theta lock` write their outputs to
+/// `$THETA_OUT_DIR/.theta/` and `$THETA_OUT_DIR/theta.lock` instead of
+/// placing them next to the manifest. Source files are still resolved
+/// relative to the manifest's directory. This allows materializing a
+/// project into a temporary directory without modifying the source tree.
+pub const THETA_OUT_DIR_ENV: &str = "THETA_OUT_DIR";
+
 /// theta-typed keys for a `[tools.<name>]` MCP server entry.
 pub const THETA_TYPED_MCP_KEYS: &[&str] = &[
     MCP_KEY_TYPE,

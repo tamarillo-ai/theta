@@ -44,8 +44,11 @@ pub(crate) fn execute(
     }
 
     let project_dir = project_dir(manifest_path)?;
-    let lock_path = project_dir.join(LOCKFILE);
-    let theta_dir = project_dir.join(DOT_THETA_DIR);
+    let out_dir = std::env::var(theta_static::THETA_OUT_DIR_ENV)
+        .ok()
+        .map_or_else(|| project_dir.to_path_buf(), PathBuf::from);
+    let lock_path = out_dir.join(LOCKFILE);
+    let theta_dir = out_dir.join(DOT_THETA_DIR);
 
     let lock =
         read_lock(&lock_path).with_context(|| format!("failed to read {}", lock_path.display()))?;

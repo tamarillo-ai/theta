@@ -15,8 +15,32 @@ pub(crate) fn execute(args: SchemaArgs) -> Result<()> {
     if args.list_verbs {
         return print_verb_tree();
     }
+    if args.get {
+        let schema = schemars::schema_for!(super::get::GetOutcome);
+        println!("{}", serde_json::to_string_pretty(&schema)?);
+        return Ok(());
+    }
+    if args.constants {
+        return print_constants();
+    }
     let schema = schemars::schema_for!(ThetaManifest);
     println!("{}", serde_json::to_string_pretty(&schema)?);
+    Ok(())
+}
+
+fn print_constants() -> Result<()> {
+    let obj = serde_json::json!({
+        "dot_theta_dir":      theta_static::DOT_THETA_DIR,
+        "lockfile":           theta_static::LOCKFILE,
+        "manifest_file_name": theta_static::MANIFEST_FILE_NAME,
+        "system_file_name":   theta_static::SYSTEM_FILE_NAME,
+        "rules_dir":          theta_static::RULES_DIR,
+        "skills_dir":         theta_static::SKILLS_DIR,
+        "skill_file_name":    theta_static::SKILL_FILE_NAME,
+        "subagents_dir_name": theta_static::SUBAGENTS_DIR_NAME,
+        "theta_out_dir_env":  theta_static::THETA_OUT_DIR_ENV,
+    });
+    println!("{}", serde_json::to_string_pretty(&obj)?);
     Ok(())
 }
 
@@ -59,6 +83,7 @@ fn output_schema_for(path: &[String]) -> Option<RootSchema> {
         ["cast", "to"] => Some(schemars::schema_for!(super::cast::CastToOutcome)),
         ["cast", "from"] => Some(schemars::schema_for!(super::cast::CastFromOutcome)),
         ["add" | "rm" | "register", _] => Some(schemars::schema_for!(MutationOutput)),
+        ["get"] => Some(schemars::schema_for!(super::get::GetOutcome)),
         _ => None,
     }
 }

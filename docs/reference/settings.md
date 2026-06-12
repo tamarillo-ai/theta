@@ -10,6 +10,12 @@ theta resolves settings using a cascade: CLI flag > environment variable > built
 | Rules subdirectory | `--rules-dir` | `THETA_RULES_DIR` | `rules` |
 | Subagent prompts directory | `--subagent-prompts` | `THETA_SUBAGENTS_DIR` | `subagents` |
 
+## Output directory override
+
+| Environment variable | Effect |
+|---|---|
+| `THETA_OUT_DIR` | When set, `theta sync` and `theta lock` write `.theta/` and `theta.lock` to this directory instead of next to `theta.toml`. Source files are still resolved relative to the manifest. Useful for materializing into a temporary directory without modifying the source tree — for example, when building tooling that reads project content without side effects. |
+
 The instructions/rules settings control where `theta add system` and `theta add rule` scaffold files. `THETA_SUBAGENTS_DIR` controls where `theta cast from` writes externalized subagent prompt files and where `theta add subagent` scaffolds new `.md` files:
 
 ```
@@ -43,16 +49,23 @@ theta finds the manifest by:
 
 ## Machine-readable output
 
-`theta check`, `theta list`, and `theta tree` support `--output-format json`:
+`theta check`, `theta list`, `theta tree`, `theta sync`, `theta lock`, and `theta get` support `--output-format json`:
 
 ```bash
 theta check --output-format json
 theta list rules --output-format json
 theta tree --output-format json
+theta sync --output-format json
+theta get --output-format json
 ```
 
-`theta schema` dumps the full JSON Schema for `theta.toml`:
+`theta schema` flags:
 
 ```bash
-theta schema > theta-manifest.schema.json
+theta schema                  # full JSON Schema for theta.toml
+theta schema --list-verbs     # verb tree (for tooling / codegen)
+theta schema --get            # JSON Schema for theta get output
+theta schema --constants      # theta-static path constants (for codegen)
 ```
+
+`theta get` emits the full materialized project state as JSON — agent identity, lock hash, system prompt, rules, skills (with SKILL.md content and supporting files), and tools. Requires `theta sync` to have run first.

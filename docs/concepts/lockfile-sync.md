@@ -32,6 +32,12 @@ theta sync              # materialize from lockfile
 theta sync --force      # re-sync even if up to date
 ```
 
+By default, `.theta/` and `theta.lock` are written next to `theta.toml`. Set `THETA_OUT_DIR` to redirect both outputs to a different directory without modifying the source tree:
+
+```bash
+THETA_OUT_DIR=/tmp/my-project theta sync --manifest ./my-agent/theta.toml
+```
+
 Layout:
 
 ```
@@ -56,6 +62,16 @@ Layout:
 ```
 
 `.theta/` is a derived artifact — add it to `.gitignore`.
+
+## Reading materialized content
+
+`theta get --output-format json` emits the complete materialized state as a single JSON object: agent identity, lock hash, system prompt, all rules with their apply metadata, all skills (with `SKILL.md` content and supporting files), and all tools. Requires `.theta/` to exist:
+
+```bash
+theta get --output-format json
+```
+
+This is the canonical machine-readable view of "what is in this project."
 
 ## Auto-sync
 

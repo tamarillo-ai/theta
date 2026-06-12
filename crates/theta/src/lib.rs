@@ -51,6 +51,7 @@ pub fn run() -> Result<()> {
         Commands::Register(ns) => commands::register::dispatch(ns, output_format, &manifest_path),
         Commands::Tree(args) => commands::tree::execute(args, output_format, &manifest_path),
         Commands::Schema(args) => commands::schema::execute(args),
+        Commands::Get(args) => commands::get::execute(args, output_format, &manifest_path),
     }
 }
 

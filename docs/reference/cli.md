@@ -43,6 +43,7 @@ This document contains the help content for the `theta` command-line program.
 * [`theta register agent`↴](#theta-register-agent)
 * [`theta tree`↴](#theta-tree)
 * [`theta schema`↴](#theta-schema)
+* [`theta get`↴](#theta-get)
 
 ## `theta`
 
@@ -64,6 +65,7 @@ manage agent configurations defined by theta-spec
 * `register` — Register a resource into the system store
 * `tree` — Print the subagent dependency tree
 * `schema` — Print the theta.toml JSON Schema
+* `get` — Emit all materialized project content as JSON (requires theta sync first)
 
 ###### **Options:**
 
@@ -582,6 +584,16 @@ Print the theta.toml JSON Schema
 ###### **Options:**
 
 * `--list-verbs` — Emit a JSON tree of every verb in the CLI (name, path, args). When set, the manifest JSON Schema is not printed
+* `--get` — Emit the JSON Schema for the `theta get` output data object. When set, neither the manifest schema nor the verb tree is printed
+* `--constants` — Emit theta-static path constants as JSON, for use by `theta_py` codegen. When set, neither the manifest schema nor the verb tree is printed
+
+
+
+## `theta get`
+
+Emit all materialized project content as JSON (requires theta sync first)
+
+**Usage:** `theta get`
 
 
 
