@@ -13,7 +13,7 @@ use theta_static::SCHEMA_VERSION;
 use super::output::present_no_op;
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct MigrateOutcome {
+pub(crate) struct MigrateOutput {
     pub from_version: String,
     pub to_version: String,
     pub migrated: bool,
@@ -36,7 +36,7 @@ pub(crate) fn execute(
         .with_context(|| format!("failed to validate {}", manifest_path.display()))?;
 
     if version == SCHEMA_VERSION {
-        let outcome = MigrateOutcome {
+        let outcome = MigrateOutput {
             from_version: version.to_string(),
             to_version: SCHEMA_VERSION.to_string(),
             migrated: false,

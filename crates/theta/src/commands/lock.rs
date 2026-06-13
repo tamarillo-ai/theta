@@ -17,7 +17,7 @@ use super::output::{present, present_error, present_no_op};
 use super::{project_dir, require_manifest};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct LockOutcome {
+pub(crate) struct LockOutput {
     pub lockfile_path: PathBuf,
     pub wrote: bool,
 }
@@ -43,7 +43,7 @@ pub(crate) fn execute(
         && let Ok(existing) = read_lock(&lock_path)
         && is_stale(&existing, &manifest_bytes, project_dir)?.is_none()
     {
-        let outcome = LockOutcome {
+        let outcome = LockOutput {
             lockfile_path: lock_path,
             wrote: false,
         };
@@ -63,7 +63,7 @@ pub(crate) fn execute(
                 .iter()
                 .map(|e| Diagnostic::error("[lock]", e.to_string()))
                 .collect();
-            let outcome = LockOutcome {
+            let outcome = LockOutput {
                 lockfile_path: lock_path,
                 wrote: false,
             };
@@ -90,7 +90,7 @@ pub(crate) fn execute(
     write_lock(&lock_path, &lock)
         .with_context(|| format!("failed to write {}", lock_path.display()))?;
 
-    let outcome = LockOutcome {
+    let outcome = LockOutput {
         lockfile_path: lock_path,
         wrote: true,
     };

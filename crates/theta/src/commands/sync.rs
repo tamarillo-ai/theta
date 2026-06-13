@@ -19,7 +19,7 @@ use super::output::{present, present_error, present_no_op};
 use super::{project_dir, require_manifest};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct SyncOutcome {
+pub(crate) struct SyncOutput {
     pub theta_dir: PathBuf,
     pub created: usize,
     pub updated: usize,
@@ -86,7 +86,7 @@ pub(crate) fn execute(
         .filter(|d| matches!(d.level, theta_schema::DiagLevel::Error))
         .count();
 
-    let outcome = SyncOutcome {
+    let outcome = SyncOutput {
         theta_dir,
         created: report.created,
         updated: report.updated,

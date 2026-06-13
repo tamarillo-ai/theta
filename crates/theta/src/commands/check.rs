@@ -16,7 +16,7 @@ use super::output::{present, present_error};
 use crate::resolve::{check_refs, resolve_content};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct CheckOutcome {
+pub(crate) struct CheckReport {
     pub valid: bool,
     pub errors: usize,
     pub warnings: usize,
@@ -80,7 +80,7 @@ fn finish_check(
     let errors = diags.iter().filter(|d| d.level == DiagLevel::Error).count();
     let warnings = diags.iter().filter(|d| d.level == DiagLevel::Warn).count();
     let hints = diags.iter().filter(|d| d.level == DiagLevel::Hint).count();
-    let outcome = CheckOutcome {
+    let outcome = CheckReport {
         valid: errors == 0,
         errors,
         warnings,

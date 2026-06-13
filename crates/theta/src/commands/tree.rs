@@ -25,7 +25,7 @@ pub(crate) struct TreeNode {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct TreeOutcome {
+pub(crate) struct TreeOutput {
     pub tree: TreeNode,
 }
 
@@ -67,7 +67,7 @@ pub(crate) fn execute(
         .iter()
         .map(|w| Diagnostic::warn("[subagents]", w.message.clone()))
         .collect();
-    let outcome = TreeOutcome { tree };
+    let outcome = TreeOutput { tree };
     let edges_for_render = edges;
     let root_name = manifest.agent.name.clone();
 

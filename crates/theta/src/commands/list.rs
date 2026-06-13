@@ -27,7 +27,7 @@ pub(crate) enum ListKind {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct ListOutcome {
+pub(crate) struct ListOutput {
     pub kind: ListKind,
     pub entries: serde_json::Value,
 }
@@ -80,7 +80,7 @@ pub(crate) fn execute(
         ListCommand::Store => unreachable!("handled above"),
     };
 
-    let outcome = ListOutcome { kind, entries };
+    let outcome = ListOutput { kind, entries };
     let manifest_for_render = manifest;
     present(
         &["list", kind_verb(&outcome.kind)],
@@ -143,7 +143,7 @@ fn list_store(output_format: OutputFormat) -> Result<()> {
         .map(|(k, v)| (k.clone(), to_rule_entry(v)))
         .collect();
 
-    let outcome = ListOutcome {
+    let outcome = ListOutput {
         kind: ListKind::Store,
         entries: serde_json::json!({
             "agents": agents,

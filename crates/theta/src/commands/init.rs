@@ -24,7 +24,7 @@ pub(crate) enum InitSource {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct InitOutcome {
+pub(crate) struct InitOutput {
     pub manifest_path: PathBuf,
     pub agent_name: Option<String>,
     pub source: InitSource,
@@ -43,7 +43,7 @@ pub(crate) fn execute(
     }
 
     if manifest_path.exists() {
-        let outcome = InitOutcome {
+        let outcome = InitOutput {
             manifest_path: manifest_path.to_path_buf(),
             agent_name: None,
             source: InitSource::Scaffold,
@@ -73,7 +73,7 @@ pub(crate) fn execute(
 
     let gitignore_appended = append_gitignore(cwd);
 
-    let outcome = InitOutcome {
+    let outcome = InitOutput {
         manifest_path: manifest_path.to_path_buf(),
         agent_name: Some(name),
         source: InitSource::Scaffold,
@@ -112,7 +112,7 @@ fn init_from_store(
 
     store.init_from_agent(agent_name, target_dir, manifest_path, force)?;
 
-    let outcome = InitOutcome {
+    let outcome = InitOutput {
         manifest_path: manifest_path.to_path_buf(),
         agent_name: Some(agent_name.to_string()),
         source: InitSource::Store,

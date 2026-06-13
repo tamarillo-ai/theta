@@ -33,7 +33,7 @@ pub(crate) struct DescribeRule {
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct DescribeOutcome {
+pub(crate) struct DescribeOutput {
     pub mode: DescribeMode,
     pub description: Option<String>,
     pub rules: Option<Vec<DescribeRule>>,
@@ -88,7 +88,7 @@ fn read_description(
         None
     };
 
-    let outcome = DescribeOutcome {
+    let outcome = DescribeOutput {
         mode: DescribeMode::Read,
         description,
         rules: rules_out,
@@ -159,7 +159,7 @@ fn write_description(
         .count();
 
     if errors > 0 {
-        let outcome = DescribeOutcome {
+        let outcome = DescribeOutput {
             mode: DescribeMode::Write,
             description: Some(description.to_string()),
             rules: None,
@@ -180,7 +180,7 @@ fn write_description(
     write_document(manifest_path, &doc)
         .with_context(|| format!("failed to write {}", manifest_path.display()))?;
 
-    let outcome = DescribeOutcome {
+    let outcome = DescribeOutput {
         mode: DescribeMode::Write,
         description: Some(description.to_string()),
         rules: None,

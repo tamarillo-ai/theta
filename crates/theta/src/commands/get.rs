@@ -26,7 +26,7 @@ use super::{project_dir, require_manifest};
 
 /// The full materialized state of a theta project.
 #[derive(Debug, Serialize, JsonSchema)]
-pub(crate) struct GetOutcome {
+pub(crate) struct ProjectSnapshot {
     /// Agent identity fields from `theta.toml [agent]`.
     pub agent: AgentInfo,
     /// Canonical hash of the `theta.toml` that produced the current lock.
@@ -131,7 +131,7 @@ pub(crate) fn execute(
     let skills = build_skills(&manifest, &theta_dir);
     let tools = build_tools(&manifest);
 
-    let outcome = GetOutcome {
+    let outcome = ProjectSnapshot {
         agent,
         lock_hash,
         system_prompt,

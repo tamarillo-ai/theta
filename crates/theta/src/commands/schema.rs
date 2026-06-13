@@ -16,7 +16,7 @@ pub(crate) fn execute(args: SchemaArgs) -> Result<()> {
         return print_verb_tree();
     }
     if args.get {
-        let schema = schemars::schema_for!(super::get::GetOutcome);
+        let schema = schemars::schema_for!(super::get::ProjectSnapshot);
         println!("{}", serde_json::to_string_pretty(&schema)?);
         return Ok(());
     }
@@ -72,18 +72,18 @@ struct VerbNode {
 fn output_schema_for(path: &[String]) -> Option<RootSchema> {
     let segments: Vec<&str> = path.iter().map(String::as_str).collect();
     match segments.as_slice() {
-        ["init"] => Some(schemars::schema_for!(super::init::InitOutcome)),
-        ["check"] => Some(schemars::schema_for!(super::check::CheckOutcome)),
-        ["migrate"] => Some(schemars::schema_for!(super::migrate::MigrateOutcome)),
-        ["describe"] => Some(schemars::schema_for!(super::describe::DescribeOutcome)),
-        ["lock"] => Some(schemars::schema_for!(super::lock::LockOutcome)),
-        ["sync"] => Some(schemars::schema_for!(super::sync::SyncOutcome)),
-        ["tree"] => Some(schemars::schema_for!(super::tree::TreeOutcome)),
-        ["list", _] => Some(schemars::schema_for!(super::list::ListOutcome)),
-        ["cast", "to"] => Some(schemars::schema_for!(super::cast::CastToOutcome)),
-        ["cast", "from"] => Some(schemars::schema_for!(super::cast::CastFromOutcome)),
+        ["init"] => Some(schemars::schema_for!(super::init::InitOutput)),
+        ["check"] => Some(schemars::schema_for!(super::check::CheckReport)),
+        ["migrate"] => Some(schemars::schema_for!(super::migrate::MigrateOutput)),
+        ["describe"] => Some(schemars::schema_for!(super::describe::DescribeOutput)),
+        ["lock"] => Some(schemars::schema_for!(super::lock::LockOutput)),
+        ["sync"] => Some(schemars::schema_for!(super::sync::SyncOutput)),
+        ["tree"] => Some(schemars::schema_for!(super::tree::TreeOutput)),
+        ["list", _] => Some(schemars::schema_for!(super::list::ListOutput)),
+        ["cast", "to"] => Some(schemars::schema_for!(super::cast::CastToOutput)),
+        ["cast", "from"] => Some(schemars::schema_for!(super::cast::CastFromOutput)),
         ["add" | "rm" | "register", _] => Some(schemars::schema_for!(MutationOutput)),
-        ["get"] => Some(schemars::schema_for!(super::get::GetOutcome)),
+        ["get"] => Some(schemars::schema_for!(super::get::ProjectSnapshot)),
         _ => None,
     }
 }
@@ -108,7 +108,7 @@ fn walk(cmd: &clap::Command, parent: &[String]) -> VerbNode {
         path.push(cmd.get_name().to_string());
     }
 
-    let args = cmd
+    let mut args: Vec<ArgNode> = cmd
         .get_arguments()
         .filter(|a| !a.is_hide_set())
         .map(arg_to_node)
@@ -121,6 +121,7 @@ fn walk(cmd: &clap::Command, parent: &[String]) -> VerbNode {
         .collect();
 
     let output_schema = if subcommands.is_empty() {
+        inject_global_args(&mut args);
         output_schema_for(&path)
     } else {
         None
@@ -132,6 +133,20 @@ fn walk(cmd: &clap::Command, parent: &[String]) -> VerbNode {
         args,
         output_schema,
         subcommands,
+    }
+}
+
+fn inject_global_args(args: &mut Vec<ArgNode>) {
+    let existing_names: std::collections::HashSet<String> =
+        args.iter().map(|a| a.name.clone()).collect();
+
+    for global_arg in Cli::command()
+        .get_arguments()
+        .filter(|a| a.is_global_set() && !a.is_hide_set())
+    {
+        if !existing_names.contains(global_arg.get_id().as_str()) {
+            args.push(arg_to_node(global_arg));
+        }
     }
 }
 
@@ -226,5 +241,43 @@ mod tests {
             "verbs missing an output schema in `output_schema_for`: {missing:?}\n\
              Wire each one to its `*Outcome` type, or add the path to ENVELOPE_EXEMPT."
         );
+    }
+
+    fn collect_tree_leaves<'a>(node: &'a VerbNode, out: &mut Vec<&'a VerbNode>) {
+        if node.subcommands.is_empty() {
+            out.push(node);
+            return;
+        }
+        for child in &node.subcommands {
+            collect_tree_leaves(child, out);
+        }
+    }
+
+    #[test]
+    fn list_verbs_leaf_nodes_include_manifest_arg() {
+        let root = Cli::command();
+        let tree = super::walk(&root, &[]);
+
+        let mut leaves = Vec::new();
+        collect_tree_leaves(&tree, &mut leaves);
+
+        for leaf in leaves {
+            if leaf.path.is_empty() {
+                continue;
+            }
+            let global_names: Vec<String> = Cli::command()
+                .get_arguments()
+                .filter(|a| a.is_global_set() && !a.is_hide_set())
+                .map(|a| a.get_id().to_string())
+                .collect();
+            for gname in &global_names {
+                let has_it = leaf.args.iter().any(|a| &a.name == gname);
+                assert!(
+                    has_it,
+                    "leaf verb {:?} is missing global arg '{}' in list-verbs output",
+                    leaf.path, gname
+                );
+            }
+        }
     }
 }

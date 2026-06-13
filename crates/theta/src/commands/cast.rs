@@ -16,14 +16,14 @@ use theta_static::{DOT_THETA_DIR, MANIFEST_FILE_NAME};
 use super::output::{present, present_error};
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct CastToOutcome {
+pub(crate) struct CastToOutput {
     pub target: String,
     pub output_dir: PathBuf,
     pub files_written: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, JsonSchema)]
-pub(crate) struct CastFromOutcome {
+pub(crate) struct CastFromOutput {
     pub source: String,
     pub manifest_path: PathBuf,
     pub files_written: Vec<PathBuf>,
@@ -61,7 +61,7 @@ fn execute_to(args: CastToArgs, output_format: OutputFormat, manifest_path: &Pat
 
     if args.notes {
         let notes = cast_notes(target);
-        let outcome = CastToOutcome {
+        let outcome = CastToOutput {
             target: target.as_str().to_string(),
             output_dir: PathBuf::new(),
             files_written: vec![],
@@ -114,7 +114,7 @@ fn execute_to(args: CastToArgs, output_format: OutputFormat, manifest_path: &Pat
                 .map(|p| Diagnostic::error("[cast.to]", format!("{} already exists", p.display())))
                 .collect();
             let n = existing.len();
-            let outcome = CastToOutcome {
+            let outcome = CastToOutput {
                 target: target.as_str().to_string(),
                 output_dir: output_dir.clone(),
                 files_written: vec![],
@@ -146,7 +146,7 @@ fn execute_to(args: CastToArgs, output_format: OutputFormat, manifest_path: &Pat
     let mut all_diags = config_diags;
     all_diags.extend(output_diags);
 
-    let outcome = CastToOutcome {
+    let outcome = CastToOutput {
         target: target.as_str().to_string(),
         output_dir: output_dir.clone(),
         files_written: written,
@@ -257,7 +257,7 @@ fn execute_from(
 
     if args.notes {
         let notes = import_notes(target);
-        let outcome = CastFromOutcome {
+        let outcome = CastFromOutput {
             source: target.as_str().to_string(),
             manifest_path: PathBuf::new(),
             files_written: vec![],
@@ -322,7 +322,7 @@ fn execute_from(
                 ));
             }
             let n = conflicts.len();
-            let outcome = CastFromOutcome {
+            let outcome = CastFromOutput {
                 source: target.as_str().to_string(),
                 manifest_path: theta_toml.clone(),
                 files_written: vec![],
@@ -387,7 +387,7 @@ fn execute_from(
         .iter()
         .map(|p| project_dir.join(p))
         .collect();
-    let outcome = CastFromOutcome {
+    let outcome = CastFromOutput {
         source: target.as_str().to_string(),
         manifest_path: theta_toml,
         files_written,
