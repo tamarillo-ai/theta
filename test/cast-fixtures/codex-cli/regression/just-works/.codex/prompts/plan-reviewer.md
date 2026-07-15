@@ -1,6 +1,6 @@
 ---
 description: Review implementation plans with evidence-based critique before coding begins
-argument-hint: [PLAN_FILE=<path>]
+argument-hint: "[PLAN_FILE=<path>]"
 ---
 
 # Plan Reviewer

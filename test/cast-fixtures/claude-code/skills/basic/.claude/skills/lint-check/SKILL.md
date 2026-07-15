@@ -2,7 +2,7 @@
 name: wikitool
 description: Run the Rust wikitool CLI for sync, indexing, docs, import, inspection, workflow, and release operations. Use when executing command-line workflows with dry-run guardrails and canonical CLI-help validation.
 allowed-tools: Bash(wikitool:*), Bash(cargo:*), Bash(cd:*), Read, Write
-argument-hint: [command] [options]
+argument-hint: "[command] [options]"
 ---
 
 # /wikitool - Rust CLI Gateway
