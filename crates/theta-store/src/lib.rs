@@ -214,6 +214,12 @@ impl StoreHandle {
             bail!("agent '{name}' already exists in the system store - use --force to overwrite");
         }
 
+        // drop files from a previous registration so --force mirrors the current manifest
+        if dest.exists() {
+            fs_err::remove_dir_all(&dest)
+                .with_context(|| format!("failed to remove existing {}", dest.display()))?;
+        }
+
         fs_err::create_dir_all(&dest)
             .with_context(|| format!("failed to create {}", dest.display()))?;
 
@@ -673,6 +679,74 @@ mod tests {
 
         let index = store.load_index().unwrap();
         assert_eq!(index.skills["overwrite"].description, "version 2");
+    }
+
+    fn agent_manifest_with_rules(
+        name: &str,
+        system: bool,
+        rules: &[&str],
+    ) -> theta_schema::ThetaManifest {
+        let mut m = theta_schema::minimal_manifest(name);
+        m.agent.description = "A real agent".into();
+        let rules = rules
+            .iter()
+            .map(|r| {
+                (
+                    (*r).to_string(),
+                    theta_schema::Rule {
+                        src: theta_schema::LocalOrGitRef::Local(theta_schema::LocalPathRef::from(
+                            format!("rules/{r}.md").as_str(),
+                        )),
+                        summary: None,
+                        description: None,
+                        apply: theta_schema::ApplyMode::Always,
+                        apply_to: None,
+                    },
+                )
+            })
+            .collect();
+        m.instructions = Some(theta_schema::Instructions {
+            system: system.then(|| theta_schema::LocalPathRef::from("system.md")),
+            rules: Some(rules),
+        });
+        m
+    }
+
+    #[test]
+    fn register_agent_force_removes_stale_files() {
+        let (dir, store) = store_in_tmp();
+        let project = dir.path().join("project");
+        make_rule_file(&project.join("rules"), "safety");
+        make_rule_file(&project.join("rules"), "danger");
+        fs_err::write(project.join("system.md"), "You are an agent.").unwrap();
+        fs_err::write(project.join(theta_static::LOCKFILE), "# lock").unwrap();
+        let manifest_path = project.join("theta.toml");
+        fs_err::write(&manifest_path, "# manifest").unwrap();
+
+        let v1 = agent_manifest_with_rules("stale", true, &["safety"]);
+        store
+            .register_agent("stale", &v1, &manifest_path, &project, false)
+            .unwrap();
+
+        // v2 drops the system prompt, the `safety` rule and the lockfile
+        fs_err::remove_file(project.join(theta_static::LOCKFILE)).unwrap();
+        let v2 = agent_manifest_with_rules("stale", false, &["danger"]);
+        let dest = store
+            .register_agent("stale", &v2, &manifest_path, &project, true)
+            .unwrap();
+
+        let instructions = dest.join(theta_static::INSTRUCTIONS_DIR);
+        let rules = instructions.join(theta_static::RULES_DIR);
+        assert!(rules.join("danger.md").exists());
+        assert!(!rules.join("safety.md").exists(), "stale rule kept");
+        assert!(
+            !instructions.join(theta_static::SYSTEM_FILE_NAME).exists(),
+            "stale system prompt kept"
+        );
+        assert!(
+            !store.layout().agent_lock("stale").exists(),
+            "stale lockfile kept"
+        );
     }
 
     #[test]
