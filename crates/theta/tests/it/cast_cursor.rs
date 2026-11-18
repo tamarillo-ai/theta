@@ -159,6 +159,42 @@ fn import_always_apply_maps_correctly() {
 }
 
 #[test]
+fn import_manual_rule_maps_to_manual() {
+    // ref: https://cursor.com/docs/rules#rule-anatomy - no description, no globs,
+    // alwaysApply: false is a Manual rule (applied only when @-mentioned)
+    let ctx = test_context!().with_files(&[(
+        ".cursor/rules/manual-note.mdc",
+        "---\nalwaysApply: false\n---\nOnly when mentioned.\n",
+    )]);
+
+    ctx.cast_from("cursor").arg("--force").assert().success();
+
+    let toml = ctx.read_file("theta.toml");
+    assert!(
+        toml.contains("apply = \"manual\""),
+        "manual cursor rule should map to apply = manual, got:\n{toml}"
+    );
+    ctx.check().arg("--schema-only").assert().success();
+}
+
+#[test]
+fn import_description_only_rule_maps_to_model_decision() {
+    let ctx = test_context!().with_files(&[(
+        ".cursor/rules/smart.mdc",
+        "---\ndescription: apply when editing tests\nalwaysApply: false\n---\ntest conventions\n",
+    )]);
+
+    ctx.cast_from("cursor").arg("--force").assert().success();
+
+    let toml = ctx.read_file("theta.toml");
+    assert!(
+        toml.contains("apply = \"model-decision\""),
+        "rule with description and no globs should get model-decision, got:\n{toml}"
+    );
+    ctx.check().arg("--schema-only").assert().success();
+}
+
+#[test]
 fn import_glob_preserves_pattern() {
     let ctx = test_context!().with_fixture("cursor/rules/glob-pattern");
 

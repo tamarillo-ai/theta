@@ -221,8 +221,10 @@ fn import_rules(project_dir: &Path) -> Result<RulesImport> {
         } else if let Some(ref pats) = mdc.globs {
             rule["apply"] = toml_edit::value("glob");
             rule["apply_to"] = toml_edit::value(globs_to_toml_array(pats));
-        } else {
+        } else if mdc.description.is_some() {
             rule["apply"] = toml_edit::value("model-decision");
+        } else {
+            rule["apply"] = toml_edit::value("manual");
         }
 
         rules_table[stem] = toml_edit::Item::Table(rule);
